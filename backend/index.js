@@ -6,7 +6,7 @@ import codeRouter from './routes/codeRouter.js';
 import questionRouter from "./routes/questionRouter.js"
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 
 dotenv.config();
 app.use(express.json());
