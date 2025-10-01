@@ -22,13 +22,13 @@ const questionSchema = new Schema(
       default: [],
       required: true,
     },
-    constraints:{
-        type:[String],
-        required:true
+    constraints: {
+      type: [String],
+      required: true,
     },
-    topics:{
-        type:[String],
-        required:true
+    topics: {
+      type: [String],
+      required: true,
     },
     hints: {
       type: Array,
@@ -50,6 +50,7 @@ const questionSchema = new Schema(
       type: Number,
       default: 256000,
     },
+    testCases: [{ input: String, expectedOutput: [String] }],
   },
   { timestamps: true, minimize: false }
 );
