@@ -23,17 +23,21 @@ export function Header() {
           >
             Home
           </Link>
-          <Link
-            href="/question"
-            className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
-          >
-            Create Question
-          </Link>
+          <Link  href="/compiler"
+            className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
+              Compiler
+            </Link>
           <Link
             href="/problem-set"
             className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
           >
             Problem Set
+          </Link>
+          <Link
+            href="/question"
+            className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+          >
+            Create Question
           </Link>
           <Link href="/profile">
             <Button

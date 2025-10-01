@@ -1,8 +1,9 @@
 import {Router} from "express";
-import {fetchQuestionHandler, createQuestionHandler} from "../controllers/questionController.js"
+import { createQuestionHandler, fetchQuestionHandler, fetchAllQuestions }from "../controllers/questionController.js"
 const questionRouter= new Router();
 
-questionRouter.get('/',fetchQuestionHandler);
+questionRouter.get('/one/:qNumber',fetchQuestionHandler);
+questionRouter.get('/all',fetchAllQuestions);
 questionRouter.post('/new',createQuestionHandler);
 
 export default questionRouter;

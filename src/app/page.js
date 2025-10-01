@@ -39,7 +39,7 @@ export default function HomePage() {
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-lg px-8 py-6 shadow-lg shadow-primary/20"
               asChild
             >
-              <Link href="/problems">Start Practicing</Link>
+              <Link href="/problem-set">Start Practicing</Link>
             </Button>
             <Button
               size="lg"
