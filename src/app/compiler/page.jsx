@@ -406,18 +406,18 @@ h1 {
 };
 
 function App() {
-  const [language, setLanguage] = useState('javascript');
-  const [code, setCode] = useState(languageTemplates.javascript);
+  const [language, setLanguage] = useState('cpp');
+  const [code, setCode] = useState(languageTemplates.cpp);
   const [output, setOutput] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
   const [isDark, setIsDark] =useState(false);
   const editorRef = useRef(null);
 
   const languageOptions = [
+    { value: 'cpp', label: 'C++' },
     { value: 'javascript', label: 'JavaScript' },
     { value: 'python', label: 'Python' },
     { value: 'java', label: 'Java' },
-    { value: 'cpp', label: 'C++' },
     { value: 'html', label: 'HTML' },
     { value: 'css', label: 'CSS' }
   ];
