@@ -14,5 +14,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Question {
+  questionUUID String
+  questionId   Int           @id @default(autoincrement())
+  Submissions  Submissions[]
+}
 
+model Language {
+  langId      Int           @id @default(autoincrement())
+  langName    String
+  Submissions Submissions[]
+}
 
+model Submissions {
+  userId         Int      @id @default(autoincrement())
+  questionID     Question @relation(fields: [questionId], references: [questionId])
+  questionId     Int
+  status         String
+  verdict        String
+  timeUsed       Int
+  memoryUsed     Int
+  createdAt      DateTime @default(now())
+  langID         Language @relation(fields: [langId], references: [langId])
+  langId Int
+}
