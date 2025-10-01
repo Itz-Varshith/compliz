@@ -307,7 +307,7 @@
 
 import { useState, useRef } from 'react';
 import Editor from "@monaco-editor/react";
-import { Play, Copy, Download, Terminal } from 'lucide-react';
+import { Play, Copy, Download, Terminal, SunIcon } from 'lucide-react';
 
 const languageTemplates = {
   javascript: `// Welcome to JavaScript Editor
@@ -410,6 +410,7 @@ function App() {
   const [code, setCode] = useState(languageTemplates.javascript);
   const [output, setOutput] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [isDark, setIsDark] =useState(false);
   const editorRef = useRef(null);
 
   const languageOptions = [
@@ -503,9 +504,9 @@ function App() {
   return (
     <div className="flex gap-0 h-screen bg-white">
       {/* Editor Section */}
-      <div className="w-3/4 bg-gray-800 overflow-hidden flex flex-col border-r border-gray-700">
+      <div className="w-3/4  overflow-hidden flex flex-col border-r border-gray-400">
             {/* Editor Controls */}
-            <div className="bg-gray-100 px-4 py-3 flex items-center justify-between border-b border-gray-700">
+            <div className="bg-gray-100 px-4 py-3 flex items-center justify-between border-b border-gray-400">
               <div className="flex items-center gap-4">
                 <select
                   value={language}
@@ -537,6 +538,14 @@ function App() {
                   <span className="hidden sm:inline">Download</span>
                 </button>
                 <button
+                  onClick={()=>{setIsDark(!isDark)}}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition border border-gray-300"
+                  title="Mode"
+                >
+                  <SunIcon size={16} />
+                  <span className="hidden sm:inline">Toggle</span>
+                </button>
+                <button
                   onClick={runCode}
                   disabled={isRunning}
                   className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md transition disabled:opacity-50"
@@ -552,7 +561,7 @@ function App() {
               <Editor
                 height="100%"
                 language={language}
-                theme="light"
+                theme={isDark?"vs-dark":"light"}
                 value={code}
                 onChange={(value) => setCode(value || '')}
                 onMount={handleEditorDidMount}
@@ -606,5 +615,6 @@ function App() {
         </div>
       );
 }
+
 
 export default App;
