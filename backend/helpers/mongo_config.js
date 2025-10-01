@@ -5,19 +5,36 @@ dotenv.config();
 
 const mongoURL = process.env.MONGO_URL;
 
-const connectDB = async () => {
-  if (mongoose.connection.readyState === 1) return;
+if (!mongoURL) {
+  throw new Error("MONGO_URL is not defined in .env");
+}
 
-  try {
-    await mongoose.connect(mongoURL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log("MongoDB connected");
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
-    process.exit(1);
+// Global cached connection
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+async function connectDB() {
+  if (cached.conn) {
+    console.log("MongoDB connected successfully");
+    return cached.conn; 
   }
-};
+
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false, 
+    };
+
+    cached.promise = mongoose.connect(mongoURL, opts).then((mongoose) => {
+      return mongoose;
+    });
+  }
+
+  cached.conn = await cached.promise;
+  console.log("MongoDB connected successfully");
+  return cached.conn;
+}
 
 export default connectDB;
