@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { User } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import Link from "next/link";
+import { User } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function Header() {
   return (
@@ -17,10 +17,16 @@ export function Header() {
 
         {/* Navigation */}
         <nav className="flex items-center gap-6">
-          <Link href="/" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
+          <Link
+            href="/"
+            className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+          >
             Home
           </Link>
-          <Link href="/question" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
+          <Link
+            href="/question"
+            className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+          >
             Create Question
           </Link>
           <Link
@@ -29,12 +35,18 @@ export function Header() {
           >
             Problem Set
           </Link>
-          <Button variant="ghost" size="sm" className="gap-2 text-foreground/80 hover:text-primary hover:bg-primary/10">
-            <User className="h-4 w-4" />
-            Profile
-          </Button>
+          <Link href="/profile">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 text-foreground/80 hover:text-primary hover:bg-primary/10"
+            >
+              <User className="h-4 w-4" />
+              Profile
+            </Button>
+          </Link>
         </nav>
       </div>
     </header>
-  )
+  );
 }
