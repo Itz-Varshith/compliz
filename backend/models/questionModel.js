@@ -50,7 +50,7 @@ const questionSchema = new Schema(
       type: Number,
       default: 256000,
     },
-    testCases: [{ input: String, expectedOutput: [String] }],
+    testCases: [{ input: String, output: String }],
   },
   { timestamps: true, minimize: false }
 );

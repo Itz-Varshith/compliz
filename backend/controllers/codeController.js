@@ -1,23 +1,89 @@
 import axios from "axios";
 import userCode from "../models/userCodeModel.js";
 import { PrismaClient } from "../generated/prisma/index.js";
-import { userAgentFromString } from "next/server.js";
+import Question from "../models/questionModel.js";
 
 const JUDGE0_URL = "https://judge0-extra-ce.p.rapidapi.com/submissions";
 const RAPIDAPI_KEY = "626adfbb29msh20b0d11197cde51p1b5deejsndd5d79fcb72e";
 const RAPIDAPI_HOST = "judge0-extra-ce.p.rapidapi.com";
 
-
-const prisma=new PrismaClient();
-
+const prisma = new PrismaClient();
 
 const codeSubmitHandler = async (req, res) => {
-  
+  try {
+    const data = req.body;
+    const code = data.code;
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide the code",
+      });
+    }
+    const language = data.language;
+    if (!language) {
+      return res.status(400).response({
+        success: false,
+        message: "Provide the code's language",
+      });
+    }
+    const languageMap = {
+      cpp: 2,
+      c: 1,
+      java: 4,
+      python: 26,
+    };
+
+    const languageId = languageMap[language.toLowerCase()];
+    if (!languageId) {
+      return res.status(400).json({
+        success: false,
+        message: "Unsupported language",
+      });
+    }
+    const qId=data.qNumber;
+    const a=await prisma.question.findFirst({where:{questionId:qId}});
+    const ques=await Question.findById(a.questionUUID);
+    const submission = await axios.post(
+      JUDGE0_URL,
+      { language_id: languageId, source_code: code, stdin:ques.testCases[0].input, time_limit:(ques.timeLimit),memory_limit:ques.memoryLimit*1000 },
+      {
+        params: { base64_encoded: "false", wait: "true", fields: "*" },
+        headers: {
+          "x-rapidapi-key": RAPIDAPI_KEY,
+          "x-rapidapi-host": RAPIDAPI_HOST,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    // if(!data.userId){
+    //   return res.status(400).json({
+    //     success:false,
+    //     message:"Login to submit code"
+    //   })    
+    // }
+    let isPassed=false;
+    if(submission.data.stdout==ques.testCases[0].output){
+      isPassed=true
+    }
+    return res.status(200).json({
+      success:true,
+      message:"Code submitted successfully",
+      submission:submission.data,
+      isPassed
+    })
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while submitting question",
+      error: error,
+    });
+  }
 };
 
 const userCodeHandler = async (req, res) => {
   try {
-
     const data = req.body;
     const code = data.code;
     if (!code) {
@@ -28,7 +94,7 @@ const userCodeHandler = async (req, res) => {
     }
     const userInput = data.input;
     const language = data.language;
-    const userId=data.userId;
+    const userId = data.userId;
     if (!language) {
       return res.status(400).json({
         success: false,
@@ -40,12 +106,6 @@ const userCodeHandler = async (req, res) => {
       c: 1,
       java: 4,
       python: 26,
-      // javascript: 63,
-      // rust:73,
-      // swift:83,
-      // go:22,
-      // ruby:72,
-      // kotlin:78
     };
 
     const languageId = languageMap[language.toLowerCase()];
@@ -67,26 +127,26 @@ const userCodeHandler = async (req, res) => {
         },
       }
     );
-    if(userId){
-      const newUserSubmission=new userCode({
-        userId:userId,
-        code:code,
-        language:language,
-        submissionData:submission.data
+    if (userId) {
+      const newUserSubmission = new userCode({
+        userId: userId,
+        code: code,
+        language: language,
+        submissionData: submission.data,
       });
       await newUserSubmission.save();
       await prisma.userCodes.create({
-        data:{
-          userId:userId,
-          codeUUID:newUserSubmission._id
-        }
-      })
+        data: {
+          userId: userId,
+          codeUUID: newUserSubmission._id,
+        },
+      });
     }
-  
+
     return res.status(200).json({
       success: true,
       message: "Code executed successfully",
-      submission:submission.data,
+      submission: submission.data,
     });
   } catch (error) {
     return res.status(500).json({

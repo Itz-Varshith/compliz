@@ -139,6 +139,7 @@ export default function QuestionSubmissionPage() {
       constraints: validConstraints,
       timeLimit: Number.parseInt(String(timeLimit)),
       memoryLimit: Number.parseInt(String(memoryLimit)),
+      testCases:invisibleTestCases
     }
 
     try {
