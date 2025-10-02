@@ -18,20 +18,6 @@ const codeSubmitHandler = async (req, res) => {
 const userCodeHandler = async (req, res) => {
   try {
 
-const options = {
-  headers: {
-    'x-rapidapi-key': '626adfbb29msh20b0d11197cde51p1b5deejsndd5d79fcb72e',
-    'x-rapidapi-host': 'judge0-extra-ce.p.rapidapi.com'
-  }
-};
-
-try {
-  const response = await axios.get('https://judge0-extra-ce.p.rapidapi.com/languages', options);
-  console.log(response.data);
-} catch (error) {
-  console.error(error.response?.data || error.message);
-}
-
     const data = req.body;
     const code = data.code;
     if (!code) {
