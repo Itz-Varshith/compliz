@@ -17,6 +17,7 @@ export default function QuestionSubmissionPage() {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [examples, setExamples] = useState([{ input: "", output: "", explanation: "" }])
+  const [invisibleTestCases, setInvisibleTestCases] = useState([{ input: "", output: "" }])
   const [hints, setHints] = useState([""])
   const [topics, setTopics] = useState([""])
   const [constraints, setConstraints] = useState([""])
@@ -38,6 +39,22 @@ export default function QuestionSubmissionPage() {
     const updated = [...examples]
     updated[index][field] = value
     setExamples(updated)
+  }
+
+  const addInvisibleTestCase = () => {
+    setInvisibleTestCases([...invisibleTestCases, { input: "", output: "" }])
+  }
+
+  const removeInvisibleTestCase = (index) => {
+    if (invisibleTestCases.length > 1) {
+      setInvisibleTestCases(invisibleTestCases.filter((_, i) => i !== index))
+    }
+  }
+
+  const updateInvisibleTestCase = (index, field, value) => {
+    const updated = [...invisibleTestCases]
+    updated[index][field] = value
+    setInvisibleTestCases(updated)
   }
 
   const addHint = () => setHints([...hints, ""])
@@ -82,7 +99,11 @@ export default function QuestionSubmissionPage() {
     }
     const validExamples = examples.filter((ex) => ex.input.trim() && ex.output.trim() && ex.explanation.trim())
     if (validExamples.length === 0) {
-      toast({ title: "Validation Error", description: "At least one complete example is required", variant: "destructive" })
+      toast({
+        title: "Validation Error",
+        description: "At least one complete example is required",
+        variant: "destructive",
+      })
       return false
     }
     if (timeLimit <= 0) {
@@ -103,6 +124,7 @@ export default function QuestionSubmissionPage() {
     setIsSubmitting(true)
 
     const validExamples = examples.filter((ex) => ex.input.trim() && ex.output.trim() && ex.explanation.trim())
+    const validInvisibleTestCases = invisibleTestCases.filter((tc) => tc.input.trim() && tc.output.trim())
     const validHints = hints.filter((h) => h.trim())
     const validTopics = topics.filter((t) => t.trim())
     const validConstraints = constraints.filter((c) => c.trim())
@@ -111,6 +133,7 @@ export default function QuestionSubmissionPage() {
       title: title.trim(),
       description: description.trim(),
       examples: validExamples,
+      invisibleTestCases: validInvisibleTestCases,
       hints: validHints,
       topics: validTopics,
       constraints: validConstraints,
@@ -136,6 +159,7 @@ export default function QuestionSubmissionPage() {
       setTitle("")
       setDescription("")
       setExamples([{ input: "", output: "", explanation: "" }])
+      setInvisibleTestCases([{ input: "", output: "" }])
       setHints([""])
       setTopics([""])
       setConstraints([""])
@@ -152,7 +176,6 @@ export default function QuestionSubmissionPage() {
     }
   }
 
-
   return (
     <div className="min-h-screen bg-background px-4 pt-8 pb-12">
       <div className="max-w-4xl mx-auto">
@@ -163,7 +186,7 @@ export default function QuestionSubmissionPage() {
               Fill out the form below to submit a new programming question
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-8">
+          <CardContent className="pt-4">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Title */}
               <div className="space-y-2">
@@ -213,7 +236,7 @@ export default function QuestionSubmissionPage() {
                 </div>
                 {examples.map((example, index) => (
                   <Card key={index} className="border-border/50 bg-card/50">
-                    <CardContent className="pt-6 space-y-4">
+                    <CardContent className=" space-y-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-primary">Example {index + 1}</span>
                         {examples.length > 1 && (
@@ -265,6 +288,73 @@ export default function QuestionSubmissionPage() {
                           placeholder="Explain this example"
                           rows={2}
                           className="text-sm resize-none bg-input border-border focus:border-primary focus:ring-primary/20"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-base font-semibold text-foreground">Invisible Test Cases</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Hidden test cases for validation (not visible to users)
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={addInvisibleTestCase}
+                    size="sm"
+                    variant="outline"
+                    className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Test Case
+                  </Button>
+                </div>
+                {invisibleTestCases.map((testCase, index) => (
+                  <Card key={index} className="border-border/50 bg-card/50">
+                    <CardContent className=" space-y-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-primary">Test Case {index + 1}</span>
+                        {invisibleTestCases.length > 1 && (
+                          <Button
+                            type="button"
+                            onClick={() => removeInvisibleTestCase(index)}
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`testcase-input-${index}`} className="text-sm text-foreground">
+                          Input
+                        </Label>
+                        <Textarea
+                          id={`testcase-input-${index}`}
+                          value={testCase.input}
+                          onChange={(e) => updateInvisibleTestCase(index, "input", e.target.value)}
+                          placeholder="Input for this test case"
+                          rows={2}
+                          className="font-mono text-sm resize-none bg-input border-border focus:border-primary focus:ring-primary/20"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`testcase-output-${index}`} className="text-sm text-foreground">
+                          Expected Output
+                        </Label>
+                        <Textarea
+                          id={`testcase-output-${index}`}
+                          value={testCase.output}
+                          onChange={(e) => updateInvisibleTestCase(index, "output", e.target.value)}
+                          placeholder="Expected output for this test case"
+                          rows={2}
+                          className="font-mono text-sm resize-none bg-input border-border focus:border-primary focus:ring-primary/20"
                         />
                       </div>
                     </CardContent>
@@ -330,7 +420,7 @@ export default function QuestionSubmissionPage() {
                     <Input
                       value={topic}
                       onChange={(e) => updateTopic(index, e.target.value)}
-                      placeholder={`e.g., Arrays, Hash Tables`}
+                      placeholder={"e.g., Arrays"}
                       className="flex-1 bg-input border-border focus:border-primary focus:ring-primary/20"
                     />
                     {topics.length > 1 && (
