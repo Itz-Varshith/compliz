@@ -34,12 +34,29 @@ const userCodeHandler = async (req, res) => {
         message: "Provide the language for the code",
       });
     }
+    const languageMap = {
+      cpp: 54,
+      c: 48,
+      java: 62,
+      javascript: 63,
+      python: 71,
+      rust:73,
+      swift:83,
+      go:22,
+      ruby:72,
+      kotlin:78
+    };
 
-    // Here update the language ID based on the language from the input
-    // For now the only language support is for CPP cause fetching the lanuguage IDs for other languages is not happening.
+    const languageId = languageMap[language.toLowerCase()];
+    if (!languageId) {
+      return res.status(400).json({
+        success: false,
+        message: "Unsupported language",
+      });
+    }
     const submission = await axios.post(
       JUDGE0_URL,
-      { language_id: 54, source_code: code, stdin: userInput },
+      { language_id: languageId, source_code: code, stdin: userInput },
       {
         params: { base64_encoded: "false", wait: "true", fields: "*" },
         headers: {
