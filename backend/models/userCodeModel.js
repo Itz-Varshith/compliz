@@ -1,4 +1,4 @@
-import {model, Schema, models} from "mongoose"
+import {model, Schema} from "mongoose"
 
 const userCodeSchema=new Schema({
     userId:{
@@ -13,8 +13,11 @@ const userCodeSchema=new Schema({
         type:Number,
         required:true
     },
+    submissionData:{
+        type:JSON
+    }
 },{timestamps:true});
 
-const userCode=models?.userCode || model("userCode",userCodeSchema);
+const userCode=mongoose.models?.userCode || model("userCode",userCodeSchema);
 
 export default userCode;

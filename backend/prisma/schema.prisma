@@ -26,15 +26,30 @@ model Language {
   Submissions Submissions[]
 }
 
+model User {
+  userId      Int           @id @default(autoincrement())
+  Submissions Submissions[]
+  userCodes   userCodes[]
+}
+
 model Submissions {
-  userId         Int      @id @default(autoincrement())
-  questionID     Question @relation(fields: [questionId], references: [questionId])
-  questionId     Int
-  status         String
-  verdict        String
-  timeUsed       Int
-  memoryUsed     Int
-  createdAt      DateTime @default(now())
-  langID         Language @relation(fields: [langId], references: [langId])
-  langId Int
+  userID     User     @relation(fields: [userId], references: [userId])
+  userId     Int
+  questionID Question @relation(fields: [questionId], references: [questionId])
+  questionId Int
+  status     String
+  verdict    String
+  timeUsed   Int
+  memoryUsed Int
+  createdAt  DateTime @default(now())
+  langID     Language @relation(fields: [langId], references: [langId])
+  langId     Int
+  @@id([userId,createdAt])
+}
+
+model userCodes {
+  userID     User @relation(fields: [userId], references: [userId])
+  userId Int
+  codeUUID String
+  @@id([userId,codeUUID])
 }
