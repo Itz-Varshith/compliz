@@ -4,7 +4,7 @@ import { PrismaClient } from "../generated/prisma/index.js";
 import { userAgentFromString } from "next/server.js";
 
 const JUDGE0_URL = "https://judge0-extra-ce.p.rapidapi.com/submissions";
-const RAPIDAPI_KEY = "f3d1f6ff3fmsh79b2f7c81c667afp178068jsnc83724e53be9";
+const RAPIDAPI_KEY = "626adfbb29msh20b0d11197cde51p1b5deejsndd5d79fcb72e";
 const RAPIDAPI_HOST = "judge0-extra-ce.p.rapidapi.com";
 
 
@@ -12,11 +12,26 @@ const prisma=new PrismaClient();
 
 
 const codeSubmitHandler = async (req, res) => {
- 
+  
 };
 
 const userCodeHandler = async (req, res) => {
   try {
+
+const options = {
+  headers: {
+    'x-rapidapi-key': '626adfbb29msh20b0d11197cde51p1b5deejsndd5d79fcb72e',
+    'x-rapidapi-host': 'judge0-extra-ce.p.rapidapi.com'
+  }
+};
+
+try {
+  const response = await axios.get('https://judge0-extra-ce.p.rapidapi.com/languages', options);
+  console.log(response.data);
+} catch (error) {
+  console.error(error.response?.data || error.message);
+}
+
     const data = req.body;
     const code = data.code;
     if (!code) {
@@ -35,16 +50,16 @@ const userCodeHandler = async (req, res) => {
       });
     }
     const languageMap = {
-      cpp: 54,
-      c: 48,
-      java: 62,
-      javascript: 63,
-      python: 71,
-      rust:73,
-      swift:83,
-      go:22,
-      ruby:72,
-      kotlin:78
+      cpp: 2,
+      c: 1,
+      java: 4,
+      python: 26,
+      // javascript: 63,
+      // rust:73,
+      // swift:83,
+      // go:22,
+      // ruby:72,
+      // kotlin:78
     };
 
     const languageId = languageMap[language.toLowerCase()];
