@@ -12,14 +12,12 @@ const questionSchema = new Schema(
       required: true,
     },
     examples: {
-      type: [
+      type: 
         {
           input: { type: String, required: true },
           output: { type: String, required: true },
           explanation: { type: String, required: true },
         },
-      ],
-      default: [],
       required: true,
     },
     constraints: {
@@ -50,7 +48,7 @@ const questionSchema = new Schema(
       type: Number,
       default: 256000,
     },
-    testCases: [{ input: String, output: String }],
+    testCases: { input: String, output: String },
   },
   { timestamps: true, minimize: false }
 );
