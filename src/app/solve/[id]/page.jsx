@@ -614,3 +614,490 @@ export default function SolvePage({ params }) {
     </div>
   )
 }
+
+// "use client"
+
+// import { useState, useRef, use, useEffect } from "react"
+// import Editor from "@monaco-editor/react"
+// import {
+//   Play,
+//   Copy,
+//   Terminal,
+//   SunIcon,
+//   XCircle,
+//   Clock,
+//   TrendingUp,
+//   Lightbulb,
+//   ChevronDown,
+//   Pause,
+//   Loader2,
+// } from "lucide-react"
+// import { Button } from "@/components/ui/button"
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+// import { Card } from "@/components/ui/card"
+// import { Badge } from "@/components/ui/badge"
+// import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+
+// const languageTemplates = {
+//   cpp: `class Solution {
+// public:
+//     // Write your solution here
+    
+// };`,
+//   javascript: `/**
+// * @param {any} input
+// * @return {any}
+// */
+// var solution = function(input) {
+//     // Write your solution here
+    
+// };`,
+//   python: `class Solution:
+//     def solve(self, input):
+//         # Write your solution here
+//         pass`,
+//   java: `class Solution {
+//     public void solve() {
+//         // Write your solution here
+        
+//     }
+// }`,
+// }
+
+// export default function SolvePage({ params }) {
+//   const resolvedParams = use(params)
+//   const questionId = resolvedParams.id
+
+//   const [question, setQuestion] = useState(null)
+//   const [isLoading, setIsLoading] = useState(true)
+//   const [error, setError] = useState(null)
+
+//   const [activeTab, setActiveTab] = useState("description")
+//   const [language, setLanguage] = useState("cpp")
+//   const [code, setCode] = useState(languageTemplates.cpp)
+//   const [customInput, setCustomInput] = useState("")
+//   const [output, setOutput] = useState([])
+//   const [isRunning, setIsRunning] = useState(false)
+//   const [isDark, setIsDark] = useState(true)
+//   const [time, setTime] = useState(0)
+//   const [isTimerRunning, setIsTimerRunning] = useState(false)
+//   const editorRef = useRef(null)
+
+//   useEffect(() => {
+//     const fetchQuestion = async () => {
+//       try {
+//         setIsLoading(true)
+//         setError(null)
+//         const response = await fetch(`http://localhost:5000/question/one/${questionId}`)
+
+//         if (!response.ok) {
+//           throw new Error(`HTTP error! status: ${response.status}`)
+//         }
+
+//         const data = await response.json()
+
+//         if (data.success && data.questionData) {
+//           setQuestion(data.questionData)
+//         } else {
+//           throw new Error(data.message || "Failed to fetch question")
+//         }
+//       } catch (err) {
+//         setError(err instanceof Error ? err.message : "Failed to fetch question")
+//         console.error("Error fetching question:", err)
+//       } finally {
+//         setIsLoading(false)
+//       }
+//     }
+
+//     fetchQuestion()
+//   }, [questionId])
+
+//   useEffect(() => {
+//     let interval
+//     if (isTimerRunning) {
+//       interval = setInterval(() => {
+//         setTime((prevTime) => prevTime + 1)
+//       }, 1000)
+//     }
+//     return () => clearInterval(interval)
+//   }, [isTimerRunning])
+
+//   const formatTime = (seconds) => {
+//     const hrs = Math.floor(seconds / 3600)
+//     const mins = Math.floor((seconds % 3600) / 60)
+//     const secs = seconds % 60
+//     return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+//   }
+
+//   const languageOptions = [
+//     { value: "cpp", label: "C++" },
+//     { value: "javascript", label: "JavaScript" },
+//     { value: "python", label: "Python" },
+//     { value: "java", label: "Java" },
+//   ]
+
+//   const handleLanguageChange = (newLang) => {
+//     setLanguage(newLang)
+//     setCode(languageTemplates[newLang])
+//     setOutput([])
+//   }
+
+//   const handleEditorDidMount = (editor) => {
+//     editorRef.current = editor
+//   }
+
+//   const runCode = () => {
+//     setIsRunning(true)
+//     setOutput([])
+
+//     setTimeout(() => {
+//       setOutput([
+//         { type: "log", message: "Running test cases..." },
+//         { type: "log", message: "Test case 1: Passed ✓" },
+//         { type: "log", message: "Test case 2: Passed ✓" },
+//         { type: "log", message: "Runtime: 52 ms" },
+//         { type: "log", message: "Memory: 16.2 MB" },
+//       ])
+//       setIsRunning(false)
+//     }, 1500)
+//   }
+
+//   const submitCode = () => {
+//     setIsRunning(true)
+//     setOutput([])
+
+//     setTimeout(() => {
+//       setOutput([
+//         { type: "log", message: "Submitting solution..." },
+//         { type: "log", message: "All test cases passed! ✓" },
+//         { type: "log", message: "Accepted" },
+//         { type: "log", message: "Runtime: 52 ms (Beats 85.2%)" },
+//         { type: "log", message: "Memory: 16.2 MB (Beats 72.4%)" },
+//       ])
+//       setIsRunning(false)
+//     }, 2000)
+//   }
+
+//   const copyCode = () => {
+//     navigator.clipboard.writeText(code)
+//   }
+
+//   const getDifficultyColor = (difficulty) => {
+//     switch (difficulty) {
+//       case "Easy":
+//         return "text-green-600 bg-green-50 border-green-200"
+//       case "Medium":
+//         return "text-yellow-600 bg-yellow-50 border-yellow-200"
+//       case "Hard":
+//         return "text-red-600 bg-red-50 border-red-200"
+//       default:
+//         return "text-gray-600 bg-gray-50 border-gray-200"
+//     }
+//   }
+
+//   if (isLoading) {
+//     return (
+//       <div className="flex h-screen items-center justify-center bg-background">
+//         <div className="text-center">
+//           <Loader2 size={48} className="mx-auto mb-4 text-primary animate-spin" />
+//           <h3 className="text-xl font-semibold text-foreground mb-2">Loading question...</h3>
+//           <p className="text-muted-foreground">Please wait</p>
+//         </div>
+//       </div>
+//     )
+//   }
+
+//   if (error || !question) {
+//     return (
+//       <div className="flex h-screen items-center justify-center bg-background">
+//         <div className="text-center max-w-md">
+//           <XCircle size={48} className="mx-auto mb-4 text-destructive" />
+//           <h3 className="text-xl font-semibold text-foreground mb-2">Error loading question</h3>
+//           <p className="text-muted-foreground mb-4">{error || "Question not found"}</p>
+//           <Button onClick={() => window.location.reload()} variant="outline">
+//             Retry
+//           </Button>
+//         </div>
+//       </div>
+//     )
+//   }
+
+//   const acceptanceRate =
+//     question.total_submissions > 0
+//       ? ((question.accepted_submissions / question.total_submissions) * 100).toFixed(1)
+//       : "0.0"
+
+
+
+//   return (
+//     <div className="flex h-screen bg-background overflow-hidden">
+//       {/* Left Panel - Problem Description */}
+//       <div className="w-1/2 border-r border-border flex flex-col">
+//         <div className="flex-1 overflow-auto">
+//           <div className="p-6">
+//             {/* Problem Header */}
+//             <div className="mb-6">
+//               <div className="flex items-center gap-3 mb-3">
+//                 <h1 className="text-2xl font-bold text-foreground">{question.title}</h1>
+//               </div>
+//               <div className="flex items-center gap-2 flex-wrap">
+//                 {question.topics.map((topic, idx) => (
+//                   <Badge key={idx} variant="outline" className="text-xs">
+//                     {topic}
+//                   </Badge>
+//                 ))}
+//               </div>
+//             </div>
+
+//             {/* Tabs */}
+//             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+//               <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
+//                 <TabsTrigger
+//                   value="description"
+//                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+//                 >
+//                   Description
+//                 </TabsTrigger>
+//                 <TabsTrigger
+//                   value="hints"
+//                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+//                 >
+//                   Hints
+//                 </TabsTrigger>
+//               </TabsList>
+
+//               <TabsContent value="description" className="mt-6 space-y-6">
+//                 {/* Description */}
+//                 <div>
+//                   <p className="text-foreground leading-relaxed whitespace-pre-line">{question.description}</p>
+//                 </div>
+
+//                 {/* Examples */}
+//                 <div className="space-y-4">
+//                   {question.examples.map((example, idx) => (
+//                     <Card key={idx} className="p-4 bg-muted/50">
+//                       <p className="font-semibold mb-2">Example {idx + 1}:</p>
+//                       <div className="space-y-1 font-mono text-sm">
+//                         <p>
+//                           <span className="font-semibold">Input:</span> {example.input}
+//                         </p>
+//                         <p>
+//                           <span className="font-semibold">Output:</span> {example.output}
+//                         </p>
+//                         {example.explanation !== "--" && (
+//                           <p className="text-muted-foreground">
+//                             <span className="font-semibold">Explanation:</span> {example.explanation}
+//                           </p>
+//                         )}
+//                       </div>
+//                     </Card>
+//                   ))}
+//                 </div>
+
+//                 {/* Constraints */}
+//                 {question.constraints.length > 0 && (
+//                   <div>
+//                     <h3 className="font-semibold mb-3">Constraints:</h3>
+//                     <ul className="space-y-2 font-mono text-sm">
+//                       {question.constraints.map((constraint, idx) => (
+//                         <li key={idx} className="text-muted-foreground">
+//                           • {constraint}
+//                         </li>
+//                       ))}
+//                     </ul>
+//                   </div>
+//                 )}
+
+//                 {/* Time and Memory Limits */}
+//                 <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+//                   <div>
+//                     <p className="text-sm text-muted-foreground mb-1">Time Limit</p>
+//                     <p className="text-lg font-semibold">{question.timeLimit} s</p>
+//                   </div>
+//                   <div>
+//                     <p className="text-sm text-muted-foreground mb-1">Memory Limit</p>
+//                     <p className="text-lg font-semibold">{question.memoryLimit} MB</p>
+//                   </div>
+//                 </div>
+
+//                 {/* Stats */}
+//                 <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+//                   <div>
+//                     <p className="text-sm text-muted-foreground mb-1">Accepted</p>
+//                     <p className="text-lg font-semibold">{question.accepted_submissions.toLocaleString()}</p>
+//                   </div>
+//                   <div>
+//                     <p className="text-sm text-muted-foreground mb-1">Submissions</p>
+//                     <p className="text-lg font-semibold">{question.total_submissions.toLocaleString()}</p>
+//                   </div>
+//                   <div className="col-span-2">
+//                     <p className="text-sm text-muted-foreground mb-1">Acceptance Rate</p>
+//                     <div className="flex items-center gap-2">
+//                       <p className="text-lg font-semibold">{acceptanceRate}%</p>
+//                       <TrendingUp className="h-4 w-4 text-green-600" />
+//                     </div>
+//                   </div>
+//                 </div>
+//               </TabsContent>
+
+//               <TabsContent value="hints" className="mt-6">
+//                 <div className="space-y-3">
+//                   {question.hints.length === 0 ? (
+//                     <Card className="p-8 text-center">
+//                       <p className="text-muted-foreground">No hints available</p>
+//                     </Card>
+//                   ) : (
+//                     question.hints.map((hint, idx) => (
+//                       <Collapsible key={idx}>
+//                         <Card className="overflow-hidden">
+//                           <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+//                             <div className="flex items-center gap-2">
+//                               <Lightbulb className="h-4 w-4 text-yellow-600" />
+//                               <span className="font-semibold">Hint {idx + 1}</span>
+//                             </div>
+//                             <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
+//                           </CollapsibleTrigger>
+//                           <CollapsibleContent>
+//                             <div className="p-4 pt-0 border-t bg-muted/50">
+//                               <p className="text-base text-foreground">{hint}</p>
+//                             </div>
+//                           </CollapsibleContent>
+//                         </Card>
+//                       </Collapsible>
+//                     ))
+//                   )}
+//                 </div>
+//               </TabsContent>
+//             </Tabs>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Right Panel - Code Editor */}
+//       <div className="w-1/2 flex flex-col bg-background">
+//         <div className="bg-muted/30 px-4 py-3 flex items-center justify-between border-b border-border">
+//           <div className="flex items-center gap-4">
+//             <select
+//               value={language}
+//               onChange={(e) => handleLanguageChange(e.target.value)}
+//               className="bg-background text-foreground px-4 py-2 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+//             >
+//               {languageOptions.map((opt) => (
+//                 <option key={opt.value} value={opt.value}>
+//                   {opt.label}
+//                 </option>
+//               ))}
+//             </select>
+
+//             <div className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-md border border-border">
+//               <Clock className="h-4 w-4 text-muted-foreground" />
+//               <span className="font-mono text-sm font-medium">{formatTime(time)}</span>
+//               <Button
+//                 onClick={() => setIsTimerRunning(!isTimerRunning)}
+//                 variant="ghost"
+//                 size="icon"
+//                 className="h-6 w-6 ml-1"
+//               >
+//                 {isTimerRunning ? <Pause size={14} /> : <Play size={14} />}
+//               </Button>
+//             </div>
+//           </div>
+
+//           <div className="flex gap-2">
+//             <Button onClick={copyCode} variant="outline" size="sm" className="gap-2 bg-transparent">
+//               <Copy size={16} />
+//               <span className="hidden sm:inline">Copy</span>
+//             </Button>
+//             <Button onClick={() => setIsDark(!isDark)} variant="outline" size="sm" className="gap-2">
+//               <SunIcon size={16} />
+//             </Button>
+//             <Button onClick={runCode} disabled={isRunning} variant="outline" size="sm" className="gap-2 bg-transparent">
+//               <Play size={16} />
+//               Run
+//             </Button>
+//             <Button
+//               onClick={submitCode}
+//               disabled={isRunning}
+//               size="sm"
+//               className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+//             >
+//               Submit
+//             </Button>
+//           </div>
+//         </div>
+
+//         {/* Monaco Editor */}
+//         <div className="flex-1 overflow-hidden">
+//           <Editor
+//             height="100%"
+//             language={language}
+//             theme={isDark ? "vs-dark" : "light"}
+//             value={code}
+//             onChange={(value) => setCode(value || "")}
+//             onMount={handleEditorDidMount}
+//             options={{
+//               fontSize: 14,
+//               minimap: { enabled: false },
+//               scrollBeyondLastLine: false,
+//               lineNumbers: "on",
+//               roundedSelection: false,
+//               padding: { top: 16, bottom: 16 },
+//             }}
+//           />
+//         </div>
+
+//         {/* Input/Output Section */}
+//         <div className="h-64 border-t border-border flex flex-col bg-background">
+//           <Tabs defaultValue="testcase" className="flex-1 flex flex-col">
+//             <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent px-4">
+//               <TabsTrigger
+//                 value="testcase"
+//                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+//               >
+//                 Testcase
+//               </TabsTrigger>
+//               <TabsTrigger
+//                 value="result"
+//                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+//               >
+//                 Test Result
+//               </TabsTrigger>
+//             </TabsList>
+
+//             <TabsContent value="testcase" className="flex-1 p-4 overflow-auto">
+//               <div className="space-y-2">
+//                 <label className="text-sm font-medium">Custom Input</label>
+//                 <textarea
+//                   value={customInput}
+//                   onChange={(e) => setCustomInput(e.target.value)}
+//                   placeholder="Enter your test input here..."
+//                   className="w-full h-24 p-3 bg-muted border border-border rounded-md font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+//                 />
+//               </div>
+//             </TabsContent>
+
+//             <TabsContent value="result" className="flex-1 p-4 overflow-auto font-mono text-sm">
+//               {output.length === 0 ? (
+//                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+//                   <Terminal size={32} className="mb-2 opacity-50" />
+//                   <p className="text-sm">Run code to see output</p>
+//                 </div>
+//               ) : (
+//                 <div className="space-y-2">
+//                   {output.map((log, index) => (
+//                     <div
+//                       key={index}
+//                       className={`p-2 rounded ${log.type === "error" ? "bg-destructive/10 text-destructive" : "text-foreground"}`}
+//                     >
+//                       {log.message}
+//                     </div>
+//                   ))}
+//                 </div>
+//               )}
+//             </TabsContent>
+//           </Tabs>
+//         </div>
+//       </div>
+//     </div>
+//   )
+// }
