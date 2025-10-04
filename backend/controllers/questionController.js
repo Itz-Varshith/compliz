@@ -36,7 +36,6 @@ const fetchAllQuestions = async (req, res) => {
 const createQuestionHandler = async (req, res) => {
   try {
     const data = req.body;
-
     if (
       !data.title ||
       !data.description ||
@@ -48,10 +47,8 @@ const createQuestionHandler = async (req, res) => {
       !data.topics ||
       !data.testCases ||
       !data.solutionCode ||
-      !Array.isArray(data.testCases) ||
       !Array.isArray(data.constraints) ||
       !Array.isArray(data.topics) ||
-      !Array.isArray(data.examples) ||
       !Array.isArray(data.hints)
     ) {
       return res.status(400).json({

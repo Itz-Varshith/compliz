@@ -23,35 +23,35 @@ model Question {
 model Language {
   langId      Int           @id @default(autoincrement())
   langName    String
-  Submissions Submissions[]
 }
 
 model User {
-  userId      String           @id 
-  userEmail String @unique
-  userName String
+  userId      String        @id
+  userEmail   String        @unique
+  userName    String
   Submissions Submissions[]
   userCodes   userCodes[]
 }
 
 model Submissions {
-  userID     User     @relation(fields: [userId], references: [userId])
+  userID     User?     @relation(fields: [userId], references: [userId])
   userId     String
-  questionID Question @relation(fields: [questionId], references: [questionId])
+  questionID Question? @relation(fields: [questionId], references: [questionId])
   questionId Int
-  status     String
+  code       String
   verdict    String
   timeUsed   Int
   memoryUsed Int
+  langId     String
   createdAt  DateTime @default(now())
-  langID     Language @relation(fields: [langId], references: [langId])
-  langId     Int
-  @@id([userId,createdAt])
+
+  @@id([userId, createdAt])
 }
 
 model userCodes {
-  userID     User @relation(fields: [userId], references: [userId])
-  userId String
+  userID   User   @relation(fields: [userId], references: [userId])
+  userId   String
   codeUUID String
-  @@id([userId,codeUUID])
+
+  @@id([userId, codeUUID])
 }

@@ -41,11 +41,11 @@ const codeSubmitHandler = async (req, res) => {
       });
     }
     const qId=data.qNumber;
-    const a=await prisma.question.findFirst({where:{questionId:qId}});
+    const a=await prisma.question.findFirst({where:{questionId:parseInt(qId)}});
     const ques=await Question.findById(a.questionUUID);
     const submission = await axios.post(
       JUDGE0_URL,
-      { language_id: languageId, source_code: code, stdin:ques.testCases[0].input, time_limit:(ques.timeLimit),memory_limit:ques.memoryLimit*1000 },
+      { language_id: languageId, source_code: code, stdin:ques.testCases.input, time_limit:(ques.timeLimit),memory_limit:ques.memoryLimit*1000 },
       {
         params: { base64_encoded: "false", wait: "true", fields: "*" },
         headers: {
@@ -55,14 +55,20 @@ const codeSubmitHandler = async (req, res) => {
         },
       }
     );
-    // if(!data.userId){
-    //   return res.status(400).json({
-    //     success:false,
-    //     message:"Login to submit code"
-    //   })    
-    // }
+    await prisma.submissions.create({
+  data: {
+    code: code,
+    memoryUsed: submission.data.memory ?? 0,
+    timeUsed: parseInt(submission.data.time) || 0,
+    verdict: submission.data.status.description,
+    langId: language,
+    userID: { connect: { userId: req.user.userId } },
+    questionID: { connect: { questionId: parseInt(qId) } } 
+  }
+});
+
     let isPassed=false;
-    if(submission.data.stdout==ques.testCases[0].output){
+    if(submission.data.stdout==ques.testCases.output){
       isPassed=true
     }
     return res.status(200).json({
