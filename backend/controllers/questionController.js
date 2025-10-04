@@ -36,7 +36,6 @@ const fetchAllQuestions = async (req, res) => {
 const createQuestionHandler = async (req, res) => {
   try {
     const data = req.body;
-    console.log(data);
     if (
       !data.title ||
       !data.description ||
