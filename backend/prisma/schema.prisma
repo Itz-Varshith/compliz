@@ -20,10 +20,7 @@ model Question {
   Submissions  Submissions[]
 }
 
-model Language {
-  langId      Int           @id @default(autoincrement())
-  langName    String
-}
+
 
 model User {
   userId      String        @id

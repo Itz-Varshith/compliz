@@ -5,6 +5,7 @@ import connectDB from "./helpers/mongo_config.js"
 import codeRouter from './routes/codeRouter.js';
 import questionRouter from "./routes/questionRouter.js"
 import authRouter from "./routes/authRouter.js"
+import submssionRouter from './routes/submissionRouter.js';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -32,6 +33,9 @@ app.use('/question',questionRouter);
 
 // This is the route for saving the user details into the prisma database
 app.use('/auth',authRouter);
+
+// This route is for fetching the data related to submissions
+app.use('/submission',submssionRouter)
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
