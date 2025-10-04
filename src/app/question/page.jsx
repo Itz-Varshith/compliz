@@ -24,7 +24,6 @@ export default function QuestionSubmissionPage() {
   const [timeLimit, setTimeLimit] = useState(1)
   const [memoryLimit, setMemoryLimit] = useState(256)
 
-  // Dynamic field handlers
   const addExample = () => {
     setExamples([...examples, { input: "", output: "", explanation: "" }])
   }
@@ -139,7 +138,7 @@ export default function QuestionSubmissionPage() {
       constraints: validConstraints,
       timeLimit: Number.parseInt(String(timeLimit)),
       memoryLimit: Number.parseInt(String(memoryLimit)),
-      testCases:invisibleTestCases
+      testCases: invisibleTestCases,
     }
 
     try {
@@ -178,349 +177,415 @@ export default function QuestionSubmissionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-4 pt-8 pb-12">
-      <div className="max-w-4xl mx-auto">
-        <Card className="border-border/50 shadow-xl">
-          <CardHeader className="border-b border-border/50">
-            <CardTitle className="text-3xl font-bold text-balance">Submit Programming Question</CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Fill out the form below to submit a new programming question
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <form onSubmit={handleSubmit} className="space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 px-4 pt-8 pb-12">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-balance mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            Submit Programming Question
+          </h1>
+          <p className="text-muted-foreground text-lg">Create a new coding challenge for the community</p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* LEFT COLUMN - Problem Details */}
+            <div className="space-y-6">
               {/* Title */}
-              <div className="space-y-2">
-                <Label htmlFor="title" className="text-base font-semibold text-foreground">
-                  Title <span className="text-primary">*</span>
-                </Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Two Sum Problem"
-                  className="text-base bg-input border-border focus:border-primary focus:ring-primary/20"
-                />
-              </div>
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <span className="h-8 w-1 bg-primary rounded-full" />
+                    Title
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g., Two Sum Problem"
+                    className="text-base bg-background border-border focus:border-primary focus:ring-primary/20"
+                    required
+                  />
+                </CardContent>
+              </Card>
 
               {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="description" className="text-base font-semibold text-foreground">
-                  Description <span className="text-primary">*</span>
-                </Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Provide a detailed description of the problem..."
-                  rows={6}
-                  className="text-base resize-none bg-input border-border focus:border-primary focus:ring-primary/20"
-                />
-              </div>
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <span className="h-8 w-1 bg-primary rounded-full" />
+                    Description
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Provide a detailed description of the problem..."
+                    rows={8}
+                    className="text-base resize-none bg-background border-border focus:border-primary focus:ring-primary/20"
+                    required
+                  />
+                </CardContent>
+              </Card>
 
               {/* Examples */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold text-foreground">
-                    Examples <span className="text-primary">*</span>
-                  </Label>
-                  <Button
-                    type="button"
-                    onClick={addExample}
-                    size="sm"
-                    variant="outline"
-                    className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Example
-                  </Button>
-                </div>
-                {examples.map((example, index) => (
-                  <Card key={index} className="border-border/50 bg-card/50">
-                    <CardContent className=" space-y-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-primary">Example {index + 1}</span>
-                        {examples.length > 1 && (
-                          <Button
-                            type="button"
-                            onClick={() => removeExample(index)}
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`example-input-${index}`} className="text-sm text-foreground">
-                          Input
-                        </Label>
-                        <Textarea
-                          id={`example-input-${index}`}
-                          value={example.input}
-                          onChange={(e) => updateExample(index, "input", e.target.value)}
-                          placeholder="Input for this example"
-                          rows={2}
-                          className="font-mono text-sm resize-none bg-input border-border focus:border-primary focus:ring-primary/20"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`example-output-${index}`} className="text-sm text-foreground">
-                          Output
-                        </Label>
-                        <Textarea
-                          id={`example-output-${index}`}
-                          value={example.output}
-                          onChange={(e) => updateExample(index, "output", e.target.value)}
-                          placeholder="Expected output"
-                          rows={2}
-                          className="font-mono text-sm resize-none bg-input border-border focus:border-primary focus:ring-primary/20"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`example-explanation-${index}`} className="text-sm text-foreground">
-                          Explanation
-                        </Label>
-                        <Textarea
-                          id={`example-explanation-${index}`}
-                          value={example.explanation}
-                          onChange={(e) => updateExample(index, "explanation", e.target.value)}
-                          placeholder="Explain this example"
-                          rows={2}
-                          className="text-sm resize-none bg-input border-border focus:border-primary focus:ring-primary/20"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label className="text-base font-semibold text-foreground">Invisible Test Cases</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Hidden test cases for validation (not visible to users)
-                    </p>
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <span className="h-8 w-1 bg-primary rounded-full" />
+                      Examples
+                    </CardTitle>
+                    <Button
+                      type="button"
+                      onClick={addExample}
+                      size="sm"
+                      variant="outline"
+                      className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    onClick={addInvisibleTestCase}
-                    size="sm"
-                    variant="outline"
-                    className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Test Case
-                  </Button>
-                </div>
-                {invisibleTestCases.map((testCase, index) => (
-                  <Card key={index} className="border-border/50 bg-card/50">
-                    <CardContent className=" space-y-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-primary">Test Case {index + 1}</span>
-                        {invisibleTestCases.length > 1 && (
-                          <Button
-                            type="button"
-                            onClick={() => removeInvisibleTestCase(index)}
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`testcase-input-${index}`} className="text-sm text-foreground">
-                          Input
-                        </Label>
-                        <Textarea
-                          id={`testcase-input-${index}`}
-                          value={testCase.input}
-                          onChange={(e) => updateInvisibleTestCase(index, "input", e.target.value)}
-                          placeholder="Input for this test case"
-                          rows={2}
-                          className="font-mono text-sm resize-none bg-input border-border focus:border-primary focus:ring-primary/20"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`testcase-output-${index}`} className="text-sm text-foreground">
-                          Expected Output
-                        </Label>
-                        <Textarea
-                          id={`testcase-output-${index}`}
-                          value={testCase.output}
-                          onChange={(e) => updateInvisibleTestCase(index, "output", e.target.value)}
-                          placeholder="Expected output for this test case"
-                          rows={2}
-                          className="font-mono text-sm resize-none bg-input border-border focus:border-primary focus:ring-primary/20"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {/* Hints */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold text-foreground">Hints</Label>
-                  <Button
-                    type="button"
-                    onClick={addHint}
-                    size="sm"
-                    variant="outline"
-                    className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Hint
-                  </Button>
-                </div>
-                {hints.map((hint, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={hint}
-                      onChange={(e) => updateHint(index, e.target.value)}
-                      placeholder={`Hint ${index + 1}`}
-                      className="flex-1 bg-input border-border focus:border-primary focus:ring-primary/20"
-                    />
-                    {hints.length > 1 && (
-                      <Button
-                        type="button"
-                        onClick={() => removeHint(index)}
-                        size="icon"
-                        variant="ghost"
-                        className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Topics */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold text-foreground">Topics</Label>
-                  <Button
-                    type="button"
-                    onClick={addTopic}
-                    size="sm"
-                    variant="outline"
-                    className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Topic
-                  </Button>
-                </div>
-                {topics.map((topic, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={topic}
-                      onChange={(e) => updateTopic(index, e.target.value)}
-                      placeholder={"e.g., Arrays"}
-                      className="flex-1 bg-input border-border focus:border-primary focus:ring-primary/20"
-                    />
-                    {topics.length > 1 && (
-                      <Button
-                        type="button"
-                        onClick={() => removeTopic(index)}
-                        size="icon"
-                        variant="ghost"
-                        className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Constraints */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold text-foreground">Constraints</Label>
-                  <Button
-                    type="button"
-                    onClick={addConstraint}
-                    size="sm"
-                    variant="outline"
-                    className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Constraint
-                  </Button>
-                </div>
-                {constraints.map((constraint, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={constraint}
-                      onChange={(e) => updateConstraint(index, e.target.value)}
-                      placeholder={`e.g., 1 <= n <= 10^5`}
-                      className="flex-1 font-mono bg-input border-border focus:border-primary focus:ring-primary/20"
-                    />
-                    {constraints.length > 1 && (
-                      <Button
-                        type="button"
-                        onClick={() => removeConstraint(index)}
-                        size="icon"
-                        variant="ghost"
-                        className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {examples.map((example, index) => (
+                    <Card key={index} className="border-primary/20 bg-muted/30">
+                      <CardContent className="pt-6 space-y-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold text-primary">Example {index + 1}</span>
+                          {examples.length > 1 && (
+                            <Button
+                              type="button"
+                              onClick={() => removeExample(index)}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`example-input-${index}`} className="text-sm font-medium">
+                            Input
+                          </Label>
+                          <Textarea
+                            id={`example-input-${index}`}
+                            value={example.input}
+                            onChange={(e) => updateExample(index, "input", e.target.value)}
+                            placeholder="Input for this example"
+                            rows={2}
+                            className="font-mono text-sm resize-none bg-background border-border focus:border-primary focus:ring-primary/20"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`example-output-${index}`} className="text-sm font-medium">
+                            Output
+                          </Label>
+                          <Textarea
+                            id={`example-output-${index}`}
+                            value={example.output}
+                            onChange={(e) => updateExample(index, "output", e.target.value)}
+                            placeholder="Expected output"
+                            rows={2}
+                            className="font-mono text-sm resize-none bg-background border-border focus:border-primary focus:ring-primary/20"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`example-explanation-${index}`} className="text-sm font-medium">
+                            Explanation
+                          </Label>
+                          <Textarea
+                            id={`example-explanation-${index}`}
+                            value={example.explanation}
+                            onChange={(e) => updateExample(index, "explanation", e.target.value)}
+                            placeholder="Explain this example"
+                            rows={2}
+                            className="text-sm resize-none bg-background border-border focus:border-primary focus:ring-primary/20"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </CardContent>
+              </Card>
 
               {/* Time and Memory Limits */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="timeLimit" className="text-base font-semibold text-foreground">
-                    Time Limit (seconds) <span className="text-primary">*</span>
-                  </Label>
-                  <Input
-                    id="timeLimit"
-                    type="number"
-                    min="1"
-                    value={timeLimit}
-                    onChange={(e) => setTimeLimit(Number.parseInt(e.target.value) || 1)}
-                    className="text-base bg-input border-border focus:border-primary focus:ring-primary/20"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="memoryLimit" className="text-base font-semibold text-foreground">
-                    Memory Limit (MB) <span className="text-primary">*</span>
-                  </Label>
-                  <Input
-                    id="memoryLimit"
-                    type="number"
-                    min="1"
-                    value={memoryLimit}
-                    onChange={(e) => setMemoryLimit(Number.parseInt(e.target.value) || 1)}
-                    className="text-base bg-input border-border focus:border-primary focus:ring-primary/20"
-                  />
-                </div>
-              </div>
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <span className="h-8 w-1 bg-primary rounded-full" />
+                    Execution Limits
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="timeLimit" className="text-sm font-medium">
+                      Time Limit (seconds)
+                    </Label>
+                    <Input
+                      id="timeLimit"
+                      type="number"
+                      min="1"
+                      value={timeLimit}
+                      onChange={(e) => setTimeLimit(Number.parseInt(e.target.value) || 1)}
+                      className="text-base bg-background border-border focus:border-primary focus:ring-primary/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="memoryLimit" className="text-sm font-medium">
+                      Memory Limit (MB)
+                    </Label>
+                    <Input
+                      id="memoryLimit"
+                      type="number"
+                      min="1"
+                      value={memoryLimit}
+                      onChange={(e) => setMemoryLimit(Number.parseInt(e.target.value) || 1)}
+                      className="text-base bg-background border-border focus:border-primary focus:ring-primary/20"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-              {/* Submit Button */}
-              <div className="flex justify-end pt-4">
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={isSubmitting}
-                  className="min-w-[200px] bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-                >
-                  {isSubmitting ? "Submitting..." : "Submit Question"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+              
+            </div>
+
+            {/* RIGHT COLUMN - Testing & Validation */}
+            <div className="space-y-6">
+              {/* Hidden Test Cases */}
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <span className="h-8 w-1 bg-primary rounded-full" />
+                        Hidden Test Cases
+                      </CardTitle>
+                      <CardDescription className="mt-2">
+                        Private test cases for validation (not visible to users)
+                      </CardDescription>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={addInvisibleTestCase}
+                      size="sm"
+                      variant="outline"
+                      className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {invisibleTestCases.map((testCase, index) => (
+                    <Card key={index} className="border-primary/20 bg-muted/30">
+                      <CardContent className="pt-6 space-y-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold text-primary">Test Case {index + 1}</span>
+                          {invisibleTestCases.length > 1 && (
+                            <Button
+                              type="button"
+                              onClick={() => removeInvisibleTestCase(index)}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`testcase-input-${index}`} className="text-sm font-medium">
+                            Input
+                          </Label>
+                          <Textarea
+                            id={`testcase-input-${index}`}
+                            value={testCase.input}
+                            onChange={(e) => updateInvisibleTestCase(index, "input", e.target.value)}
+                            placeholder="Input for this test case"
+                            rows={2}
+                            className="font-mono text-sm resize-none bg-background border-border focus:border-primary focus:ring-primary/20"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`testcase-output-${index}`} className="text-sm font-medium">
+                            Expected Output
+                          </Label>
+                          <Textarea
+                            id={`testcase-output-${index}`}
+                            value={testCase.output}
+                            onChange={(e) => updateInvisibleTestCase(index, "output", e.target.value)}
+                            placeholder="Expected output for this test case"
+                            rows={2}
+                            className="font-mono text-sm resize-none bg-background border-border focus:border-primary focus:ring-primary/20"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Hints */}
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <span className="h-8 w-1 bg-primary rounded-full" />
+                        Hints
+                      </CardTitle>
+                      <CardDescription className="mt-2">Optional hints to help users solve the problem</CardDescription>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={addHint}
+                      size="sm"
+                      variant="outline"
+                      className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {hints.map((hint, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={hint}
+                        onChange={(e) => updateHint(index, e.target.value)}
+                        placeholder={`Hint ${index + 1}`}
+                        className="flex-1 bg-background border-border focus:border-primary focus:ring-primary/20"
+                      />
+                      {hints.length > 1 && (
+                        <Button
+                          type="button"
+                          onClick={() => removeHint(index)}
+                          size="icon"
+                          variant="ghost"
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Constraints */}
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <span className="h-8 w-1 bg-primary rounded-full" />
+                        Constraints
+                      </CardTitle>
+                      <CardDescription className="mt-2">Define input constraints and boundaries</CardDescription>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={addConstraint}
+                      size="sm"
+                      variant="outline"
+                      className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {constraints.map((constraint, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={constraint}
+                        onChange={(e) => updateConstraint(index, e.target.value)}
+                        placeholder="e.g., 1 <= n <= 10^5"
+                        className="flex-1 font-mono bg-background border-border focus:border-primary focus:ring-primary/20"
+                      />
+                      {constraints.length > 1 && (
+                        <Button
+                          type="button"
+                          onClick={() => removeConstraint(index)}
+                          size="icon"
+                          variant="ghost"
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+              {/* Topics */}
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <span className="h-8 w-1 bg-primary rounded-full" />
+                      Topics
+                    </CardTitle>
+                    <Button
+                      type="button"
+                      onClick={addTopic}
+                      size="sm"
+                      variant="outline"
+                      className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
+                  <CardDescription>Tag this question with relevant topics</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {topics.map((topic, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={topic}
+                        onChange={(e) => updateTopic(index, e.target.value)}
+                        placeholder="e.g., Arrays, Dynamic Programming"
+                        className="flex-1 bg-background border-border focus:border-primary focus:ring-primary/20"
+                      />
+                      {topics.length > 1 && (
+                        <Button
+                          type="button"
+                          onClick={() => removeTopic(index)}
+                          size="icon"
+                          variant="ghost"
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          <div className="mt-8 flex justify-center">
+            <Button
+              type="submit"
+              size="lg"
+              disabled={isSubmitting}
+              className="min-w-[300px] bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg hover:shadow-xl transition-all"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Question"}
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   )

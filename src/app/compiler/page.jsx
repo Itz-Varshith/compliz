@@ -44,13 +44,7 @@ public class Main {
 using namespace std;
 
 int main() {
-    cout << "Hello, World!" << endl;
-    
-    // Example: Vector operations
-    vector<int> numbers = {1, 2, 3, 4, 5};
-    for (int num : numbers) {
-        cout << "Number: " << num << endl;
-    }
+ // your code goes here
     
     return 0;
 }`,

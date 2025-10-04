@@ -12,13 +12,10 @@ const questionSchema = new Schema(
       required: true,
     },
     examples: {
-      type: 
-        {
-          input: { type: String, required: true },
-          output: { type: String, required: true },
-          explanation: { type: String, required: true },
-        },
-      required: true,
+      input: { type: String,  },
+      output: { type: String },
+      explanation: { type: String,  },
+      
     },
     constraints: {
       type: [String],
