@@ -80,7 +80,7 @@ export default function HomePage() {
             <Button
               size="lg"
               variant="outline"
-              className="border-2 border-primary/50 text-foreground hover:bg-primary/10 hover:border-primary font-semibold text-lg px-8 py-6 bg-transparent transition-all"
+              className="border-2 border-primary/50 text-foreground hover:bg-primary/55 hover:border-primary font-semibold text-lg px-8 py-6 bg-transparent transition-all"
               asChild
             >
               <Link href="/compiler">Try Compiler</Link>
