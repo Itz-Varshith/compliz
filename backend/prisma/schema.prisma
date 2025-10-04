@@ -27,14 +27,16 @@ model Language {
 }
 
 model User {
-  userId      Int           @id @default(autoincrement())
+  userId      String           @id 
+  userEmail String
+  userName String
   Submissions Submissions[]
   userCodes   userCodes[]
 }
 
 model Submissions {
   userID     User     @relation(fields: [userId], references: [userId])
-  userId     Int
+  userId     String
   questionID Question @relation(fields: [questionId], references: [questionId])
   questionId Int
   status     String
@@ -49,7 +51,7 @@ model Submissions {
 
 model userCodes {
   userID     User @relation(fields: [userId], references: [userId])
-  userId Int
+  userId String
   codeUUID String
   @@id([userId,codeUUID])
 }

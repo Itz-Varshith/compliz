@@ -25,6 +25,31 @@ export default function LoginPage() {
     })
   }
 
+  const sendUserDetailsToBackend = async (user) => {
+    try {
+      console.log("Sending data...")
+      await fetch("http://localhost:5000/auth/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: user.id,
+          email: user.email,
+          name: user.user_metadata?.name,
+        }),
+      })
+    } catch (error) {
+      console.error("Failed to send user details:", error)
+    }
+  }
+
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === "SIGNED_IN" && session?.user) {
+      await sendUserDetailsToBackend(session.user)
+    }
+  })
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 relative overflow-hidden">
       <div className="absolute inset-0 -z-10">

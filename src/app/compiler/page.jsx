@@ -1,9 +1,10 @@
 
 "use client";
-
 import { useState, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { Play, Copy, Download, Terminal, Clock, Database, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+
+import { SupabaseClient } from "@supabase/supabase-js";
 
 const languageTemplates = {
   javascript: `// Welcome to JavaScript Editor
@@ -107,7 +108,9 @@ function App() {
     setExecutionResult(null);
 
     try {
-      const response = await fetch("http://localhost:5000/code/self", {
+      let response;
+
+       response = await fetch("http://localhost:5000/code/self", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
