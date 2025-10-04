@@ -189,13 +189,13 @@ export default function QuestionSubmissionPage() {
          },
         body: JSON.stringify(payload),
       });
-
+      console.log(response)
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to submit question");
       }
-
-      toast({
+      
+      toast({ 
         title: "Success",
         description: "Question submitted successfully!",
       });

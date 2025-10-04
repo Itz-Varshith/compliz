@@ -8,16 +8,16 @@ try {
     console.log("Recieved data",data)
     await prisma.user.upsert({
         where:{
-            userId:data.id
+            userId:data.user.id
         },
         create:{
-            userId:data.id,
-            userName:data.name,
-            userEmail:data.email
+            userId:data.user.id,
+            userName:data.user.user_metadata.full_name,
+            userEmail:data.user.email
         },
         update:{
-            userName:data.name,
-            userEmail:data.email
+            userName:data.user.user_metadata.full_name,
+            userEmail:data.user.email
         }
     })
     return res.status(200).json({
