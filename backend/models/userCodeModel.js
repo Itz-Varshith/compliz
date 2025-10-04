@@ -2,7 +2,7 @@ import {model, Schema} from "mongoose"
 
 const userCodeSchema=new Schema({
     userId:{
-        type:Number,
+        type:String,
         required:true
     },
     code:{
@@ -10,7 +10,7 @@ const userCodeSchema=new Schema({
         required:true
     },
     language:{
-        type:Number,
+        type:String,
         required:true
     },
     submissionData:{
