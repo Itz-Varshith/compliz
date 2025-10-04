@@ -84,6 +84,8 @@ const codeSubmitHandler = async (req, res) => {
 
 const userCodeHandler = async (req, res) => {
   try {
+    console.log("Hello");
+    
     const data = req.body;
     const code = data.code;
     if (!code) {
@@ -94,7 +96,13 @@ const userCodeHandler = async (req, res) => {
     }
     const userInput = data.input;
     const language = data.language;
-    const userId = data.userId;
+    const userId = req.user.userId;
+    if(!userId){
+      return res.status(400).json({
+        success:false,
+        message:"User ID required to run and save code",
+      })
+    }
     if (!language) {
       return res.status(400).json({
         success: false,
@@ -149,6 +157,7 @@ const userCodeHandler = async (req, res) => {
       submission: submission.data,
     });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({
       success: false,
       message: "Server error while running code",
@@ -157,4 +166,63 @@ const userCodeHandler = async (req, res) => {
   }
 };
 
-export { codeSubmitHandler, userCodeHandler };
+
+const compileCodeHandler=async(req,res)=>{
+   try {
+    const data = req.body;
+    const code = data.code;
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide the code to run",
+      });
+    }
+    const userInput = data.input;
+    const language = data.language;
+    if (!language) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide the language for the code",
+      });
+    }
+    const languageMap = {
+      cpp: 2,
+      c: 1,
+      java: 4,
+      python: 26,
+    };
+
+    const languageId = languageMap[language.toLowerCase()];
+    if (!languageId) {
+      return res.status(400).json({
+        success: false,
+        message: "Unsupported language",
+      });
+    }
+    const submission = await axios.post(
+      JUDGE0_URL,
+      { language_id: languageId, source_code: code, stdin: userInput },
+      {
+        params: { base64_encoded: "false", wait: "true", fields: "*" },
+        headers: {
+          "x-rapidapi-key": RAPIDAPI_KEY,
+          "x-rapidapi-host": RAPIDAPI_HOST,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+   
+    return res.status(200).json({
+      success: true,
+      message: "Code executed successfully",
+      submission: submission.data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Server error while running code",
+      error: error,
+    });
+  }
+}
+export { codeSubmitHandler, userCodeHandler, compileCodeHandler };

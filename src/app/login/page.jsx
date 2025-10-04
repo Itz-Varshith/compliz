@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client"
 
 export default function LoginPage() {
   const supabase = createClient()
-
+  console.log("Inside the login page");
   const handleSignInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -24,7 +24,6 @@ export default function LoginPage() {
       },
     })
   }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-50 relative overflow-hidden">
       {/* Animated Background Elements */}
