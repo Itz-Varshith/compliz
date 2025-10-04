@@ -1,26 +1,44 @@
-import jwt from "jsonwebtoken";
-import fetch from "node-fetch";
+// middlewares/auth.js
+import { createClient } from "@supabase/supabase-js"
+import {PrismaClient} from "../generated/prisma/index.js"  // your Prisma client
 
-export const supabaseAuthMiddleware = async (req, res, next) => {
+const prisma=new PrismaClient();
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY // use service role on backend
+)
+
+export const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ error: "No token" });
-    // Verify with Supabase’s public keys
-    const response = await fetch(`https://oszpmexfdlszvhswzeve.supabase.co/auth/v1/jwks`,{
-        headers:{
-            "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zenBtZXhmZGxzenZoc3d6ZXZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MzU5ODgsImV4cCI6MjA3NTExMTk4OH0.pzaPaoNcYFwKpc5WrlvThvbuZdRkVE0eYYm1xJbLr1g"
-        }
-    });
-    const { keys } = await response.json();
-    const signingKey = keys[0]; // take first key
+    // 1. Extract token
+    const authHeader = req.headers["authorization"]
+    if (!authHeader) {
+      return res.status(401).json({ error: "No token provided" })
+    }
+  
+    const token = authHeader.split(" ")[1] // Bearer <token>
+    if (!token) {
+      return res.status(401).json({ error: "Invalid token format" })
+    }
 
-    jwt.verify(token, signingKey, { algorithms: ["RS256"] }, (err, decoded) => {
-      if (err) return res.status(401).json({ error: "Invalid token" });
-      console.log(decoded)
-      req.user = decoded;
-      next();
-    });
+    // 2. Verify with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token)
+    if (error || !user) {
+      return res.status(401).json({ error: "Invalid or expired token" })
+    }
+
+    // 3. Check in your database
+    let dbUser = await prisma.user.findUnique({
+      where: { userEmail: user.email },
+    })
+
+
+    // 4. Attach to request
+    req.user = dbUser
+    next()
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Auth middleware error:", err)
+    res.status(500).json({ error: "Internal server error" })
   }
-};
+}

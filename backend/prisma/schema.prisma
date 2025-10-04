@@ -28,7 +28,7 @@ model Language {
 
 model User {
   userId      String           @id 
-  userEmail String
+  userEmail String @unique
   userName String
   Submissions Submissions[]
   userCodes   userCodes[]
