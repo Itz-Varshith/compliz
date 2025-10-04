@@ -37,13 +37,6 @@ export function Header() {
     router.push("/")
   }
 
-  const handleProtectedClick = (e, path) => {
-    if (!user) {
-      e.preventDefault()
-      router.push("/login")
-    }
-  }
-
   // Helper to get user's full name and initial
   const userName = user?.user_metadata?.full_name || user?.email || "User"
   const userInitial = userName?.charAt(0).toUpperCase() || "U"
@@ -64,7 +57,7 @@ export function Header() {
         {/* Navigation */}
         <nav className="flex items-center gap-2">
           {/* Public Links */}
-          <Link href="/">
+          <Link href="/" asChild>
             <Button
               variant="ghost"
               size="sm"
@@ -73,7 +66,7 @@ export function Header() {
               Home
             </Button>
           </Link>
-          <Link href="/compiler">
+          <Link href="/compiler" asChild>
             <Button
               variant="ghost"
               size="sm"
@@ -84,7 +77,7 @@ export function Header() {
           </Link>
 
           {/* Protected Links */}
-          <Link href="/problem-set" onClick={(e) => handleProtectedClick(e, "/problem-set")}>
+          <Link href={user ? "/problem-set" : "/login"} asChild>
             <Button
               variant="ghost"
               size="sm"
@@ -93,7 +86,7 @@ export function Header() {
               Problem Set
             </Button>
           </Link>
-          <Link href="/question" onClick={(e) => handleProtectedClick(e, "/question")}>
+          <Link href={user ? "/question" : "/login"} asChild>
             <Button
               variant="ghost"
               size="sm"
@@ -130,7 +123,7 @@ export function Header() {
                 </div>
                 <div className="my-2 h-px bg-border" />
                 <div className="flex flex-col space-y-1">
-                  <Link href="/profile" legacyBehavior passHref>
+                  <Link href="/profile" asChild>
                     <Button variant="ghost" className="w-full justify-start gap-2 font-normal">
                       <User className="h-4 w-4" />
                       Profile
@@ -148,7 +141,7 @@ export function Header() {
               </PopoverContent>
             </Popover>
           ) : (
-            <Link href="/login">
+            <Link href="/login" asChild>
               <Button
                 size="sm"
                 className="gap-2 bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 shadow-md"
@@ -161,5 +154,5 @@ export function Header() {
         </nav>
       </div>
     </header>
-  )
+  );
 }
