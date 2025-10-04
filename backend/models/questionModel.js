@@ -46,6 +46,10 @@ const questionSchema = new Schema(
       default: 256000,
     },
     testCases: { input: String, output: String },
+    solutionCode:{
+      type: String,
+      required: true,
+    }
   },
   { timestamps: true, minimize: false }
 );

@@ -21,19 +21,16 @@ export default function QuestionSubmissionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [examples, setExamples] = useState([
-    { input: "", output: "", explanation: "" },
-  ]);
-  const [invisibleTestCases, setInvisibleTestCases] = useState([
-    { input: "", output: "" },
-  ]);
-  const [hints, setHints] = useState([""]);
-  const [topics, setTopics] = useState([""]);
-  const [constraints, setConstraints] = useState([""]);
-  const [timeLimit, setTimeLimit] = useState(1);
-  const [memoryLimit, setMemoryLimit] = useState(256);
+  const [title, setTitle] = useState("")
+  const [description, setDescription] = useState("")
+  const [examples, setExamples] = useState([{ input: "", output: "", explanation: "" }])
+  const [invisibleTestCases, setInvisibleTestCases] = useState([{ input: "", output: "" }])
+  const [hints, setHints] = useState([""])
+  const [topics, setTopics] = useState([""])
+  const [constraints, setConstraints] = useState([""])
+  const [timeLimit, setTimeLimit] = useState(1)
+  const [memoryLimit, setMemoryLimit] = useState(256)
+  const [solutionCode, setSolutionCode] = useState("")
 
   const addExample = () => {
     setExamples([...examples, { input: "", output: "", explanation: "" }]);
@@ -173,7 +170,8 @@ export default function QuestionSubmissionPage() {
       timeLimit: Number.parseInt(String(timeLimit)),
       memoryLimit: Number.parseInt(String(memoryLimit)),
       testCases: invisibleTestCases,
-    };
+      solutionCode: solutionCode.trim(),
+    }
 
     try {
       const supabase=createClient();
@@ -201,15 +199,16 @@ export default function QuestionSubmissionPage() {
       });
 
       // Reset form
-      setTitle("");
-      setDescription("");
-      setExamples([{ input: "", output: "", explanation: "" }]);
-      setInvisibleTestCases([{ input: "", output: "" }]);
-      setHints([""]);
-      setTopics([""]);
-      setConstraints([""]);
-      setTimeLimit(1);
-      setMemoryLimit(256);
+      setTitle("")
+      setDescription("")
+      setExamples([{ input: "", output: "", explanation: "" }])
+      setInvisibleTestCases([{ input: "", output: "" }])
+      setHints([""])
+      setTopics([""])
+      setConstraints([""])
+      setTimeLimit(1)
+      setMemoryLimit(256)
+      setSolutionCode("")
     } catch (error) {
       toast({
         title: "Error",
@@ -273,7 +272,7 @@ export default function QuestionSubmissionPage() {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Provide a detailed description of the problem..."
                     rows={8}
-                    className="text-base resize-none bg-background border-border focus:border-primary focus:ring-primary/20"
+                    className="text-base resize-y bg-background border-border focus:border-primary focus:ring-primary/20 max-h-[400px] overflow-y-auto"
                     required
                   />
                 </CardContent>
@@ -299,7 +298,7 @@ export default function QuestionSubmissionPage() {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 max-h-[500px] overflow-y-auto">
                   {examples.map((example, index) => (
                     <Card key={index} className="border-primary/20 bg-muted/30">
                       <CardContent className="pt-6 space-y-4">
@@ -334,7 +333,7 @@ export default function QuestionSubmissionPage() {
                             }
                             placeholder="Input for this example"
                             rows={2}
-                            className="font-mono text-sm resize-none bg-background border-border focus:border-primary focus:ring-primary/20"
+                            className="font-mono text-sm resize-y bg-background border-border focus:border-primary focus:ring-primary/20 max-h-[200px] overflow-y-auto"
                           />
                         </div>
                         <div className="space-y-2">
@@ -352,7 +351,7 @@ export default function QuestionSubmissionPage() {
                             }
                             placeholder="Expected output"
                             rows={2}
-                            className="font-mono text-sm resize-none bg-background border-border focus:border-primary focus:ring-primary/20"
+                            className="font-mono text-sm resize-y bg-background border-border focus:border-primary focus:ring-primary/20 max-h-[200px] overflow-y-auto"
                           />
                         </div>
                         <div className="space-y-2">
@@ -374,7 +373,7 @@ export default function QuestionSubmissionPage() {
                             }
                             placeholder="Explain this example"
                             rows={2}
-                            className="text-sm resize-none bg-background border-border focus:border-primary focus:ring-primary/20"
+                            className="text-sm resize-y bg-background border-border focus:border-primary focus:ring-primary/20 max-h-[200px] overflow-y-auto"
                           />
                         </div>
                       </CardContent>
@@ -427,10 +426,58 @@ export default function QuestionSubmissionPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Topics */}
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <span className="h-8 w-1 bg-primary rounded-full" />
+                      Topics
+                    </CardTitle>
+                    <Button
+                      type="button"
+                      onClick={addTopic}
+                      size="sm"
+                      variant="outline"
+                      className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
+                  <CardDescription>Tag this question with relevant topics</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 max-h-[300px] overflow-y-auto">
+                  {topics.map((topic, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={topic}
+                        onChange={(e) => updateTopic(index, e.target.value)}
+                        placeholder="e.g., Arrays, Dynamic Programming"
+                        className="flex-1 bg-background border-border focus:border-primary focus:ring-primary/20"
+                      />
+                      {topics.length > 1 && (
+                        <Button
+                          type="button"
+                          onClick={() => removeTopic(index)}
+                          size="icon"
+                          variant="ghost"
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              
             </div>
 
             {/* RIGHT COLUMN - Testing & Validation */}
-            <div className="space-y-6">
+            <div className="space-y-6 flex flex-col h-full">
               {/* Hidden Test Cases */}
               <Card className="border-border/50 shadow-lg">
                 <CardHeader className="pb-4">
@@ -456,7 +503,7 @@ export default function QuestionSubmissionPage() {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 max-h-[500px] overflow-y-auto">
                   {invisibleTestCases.map((testCase, index) => (
                     <Card key={index} className="border-primary/20 bg-muted/30">
                       <CardContent className="pt-6 space-y-4">
@@ -495,7 +542,7 @@ export default function QuestionSubmissionPage() {
                             }
                             placeholder="Input for this test case"
                             rows={2}
-                            className="font-mono text-sm resize-none bg-background border-border focus:border-primary focus:ring-primary/20"
+                            className="font-mono text-sm resize-y bg-background border-border focus:border-primary focus:ring-primary/20 max-h-[200px] overflow-y-auto"
                           />
                         </div>
                         <div className="space-y-2">
@@ -517,7 +564,7 @@ export default function QuestionSubmissionPage() {
                             }
                             placeholder="Expected output for this test case"
                             rows={2}
-                            className="font-mono text-sm resize-none bg-background border-border focus:border-primary focus:ring-primary/20"
+                            className="font-mono text-sm resize-y bg-background border-border focus:border-primary focus:ring-primary/20 max-h-[200px] overflow-y-auto"
                           />
                         </div>
                       </CardContent>
@@ -551,7 +598,7 @@ export default function QuestionSubmissionPage() {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-3 max-h-[300px] overflow-y-auto">
                   {hints.map((hint, index) => (
                     <div key={index} className="flex gap-2">
                       <Input
@@ -601,7 +648,7 @@ export default function QuestionSubmissionPage() {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-3 max-h-[300px] overflow-y-auto">
                   {constraints.map((constraint, index) => (
                     <div key={index} className="flex gap-2">
                       <Input
@@ -627,51 +674,25 @@ export default function QuestionSubmissionPage() {
                   ))}
                 </CardContent>
               </Card>
-              {/* Topics */}
-              <Card className="border-border/50 shadow-lg">
+
+              {/* Solution Code */}
+              <Card className="border-border/50 shadow-lg grow">
                 <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl flex items-center gap-2">
-                      <span className="h-8 w-1 bg-primary rounded-full" />
-                      Topics
-                    </CardTitle>
-                    <Button
-                      type="button"
-                      onClick={addTopic}
-                      size="sm"
-                      variant="outline"
-                      className="gap-2 border-primary/50 text-primary hover:bg-primary/10 hover:text-primary bg-transparent"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add
-                    </Button>
-                  </div>
-                  <CardDescription>
-                    Tag this question with relevant topics
-                  </CardDescription>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <span className="h-8 w-1 bg-primary rounded-full" />
+                    Solution Code
+                  </CardTitle>
+                  <CardDescription>Reference solution for the problem</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {topics.map((topic, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input
-                        value={topic}
-                        onChange={(e) => updateTopic(index, e.target.value)}
-                        placeholder="e.g., Arrays, Dynamic Programming"
-                        className="flex-1 bg-background border-border focus:border-primary focus:ring-primary/20"
-                      />
-                      {topics.length > 1 && (
-                        <Button
-                          type="button"
-                          onClick={() => removeTopic(index)}
-                          size="icon"
-                          variant="ghost"
-                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+                <CardContent className={"h-full "}>
+                  <Textarea
+                    id="solutionCode"
+                    value={solutionCode}
+                    onChange={(e) => setSolutionCode(e.target.value)}
+                    placeholder="// Write your solution code here..."
+                    rows={50}
+                    className="font-mono text-sm resize-y bg-background border-border focus:border-primary focus:ring-primary/20 h-[30vh] lg:h-full lg:max-h-[300px] overflow-y-auto "
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -690,5 +711,5 @@ export default function QuestionSubmissionPage() {
         </form>
       </div>
     </div>
-  );
+  )
 }

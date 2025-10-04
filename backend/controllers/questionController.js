@@ -47,6 +47,7 @@ const createQuestionHandler = async (req, res) => {
       !data.constraints ||
       !data.topics ||
       !data.testCases ||
+      !data.solutionCode ||
       !Array.isArray(data.testCases) ||
       !Array.isArray(data.constraints) ||
       !Array.isArray(data.topics) ||
@@ -69,7 +70,8 @@ const createQuestionHandler = async (req, res) => {
       constraints: data.constraints, // Pass as an Array of Strings
       timeLimit: data.timeLimit, // Pass from the frontend as Integer
       memoryLimit: data.memoryLimit, // Pass from frontend as integer
-      testCases : data.testCases
+      testCases : data.testCases,
+      solutionCode : data.solutionCode
     });
 
     await newQuestion.save();
