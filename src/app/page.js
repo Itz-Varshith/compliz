@@ -1,22 +1,56 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
-import { Code2, Zap, Trophy, Users } from "lucide-react"
+import { Code2, Zap, Trophy, Users, Sparkles } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 
 export default function HomePage() {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const supabase = createClient()
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      setUser(user)
+      setLoading(false)
+    }
+    getUser()
+  }, [supabase])
+
+  const handleStartPracticing = (e) => {
+    e.preventDefault()
+    if (user) {
+      router.push("/problem-set")
+    } else {
+      router.push("/login")
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative px-4 pt-20 pb-32 overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+          <div
+            className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: "1s" }}
+          />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-6xl mx-auto text-center">
           {/* Brand Name with unique font */}
           <h1 className="text-7xl md:text-8xl lg:text-9xl font-black mb-6 tracking-tight">
-            <span className="bg-gradient-to-r from-primary via-orange-500 to-primary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-orange-500 to-primary bg-clip-text text-transparent animate-gradient">
               compliz
             </span>
           </h1>
@@ -36,15 +70,17 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20">
             <Button
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-lg px-8 py-6 shadow-lg shadow-primary/20"
-              asChild
+              onClick={handleStartPracticing}
+              disabled={loading}
+              className="bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white font-semibold text-lg px-8 py-6 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all"
             >
-              <Link href="/problem-set">Start Practicing</Link>
+              <Sparkles className="h-5 w-5 mr-2" />
+              Start Practicing
             </Button>
             <Button
               size="lg"
               variant="outline"
-              className="border-2 border-primary/50 text-foreground hover:bg-primary/10 font-semibold text-lg px-8 py-6 bg-transparent"
+              className="border-2 border-primary/50 text-foreground hover:bg-primary/10 hover:border-primary font-semibold text-lg px-8 py-6 bg-transparent transition-all"
               asChild
             >
               <Link href="/compiler">Try Compiler</Link>
@@ -53,8 +89,8 @@ export default function HomePage() {
 
           {/* Feature Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-            <div className="bg-card border border-border/50 rounded-xl p-6 hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 mx-auto">
+            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all group">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
                 <Code2 className="w-6 h-6 text-primary" />
               </div>
               <h3 className="font-semibold text-lg mb-2 text-foreground">Practice Problems</h3>
@@ -63,9 +99,9 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="bg-card border border-border/50 rounded-xl p-6 hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 mx-auto">
-                <Zap className="w-6 h-6 text-primary" />
+            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all group">
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-orange-500/10 rounded-lg flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
+                <Zap className="w-6 h-6 text-orange-500" />
               </div>
               <h3 className="font-semibold text-lg mb-2 text-foreground">Online Compiler</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -73,8 +109,8 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="bg-card border border-border/50 rounded-xl p-6 hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 mx-auto">
+            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all group">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
                 <Trophy className="w-6 h-6 text-primary" />
               </div>
               <h3 className="font-semibold text-lg mb-2 text-foreground">Track Progress</h3>
@@ -83,9 +119,9 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="bg-card border border-border/50 rounded-xl p-6 hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 mx-auto">
-                <Users className="w-6 h-6 text-primary" />
+            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all group">
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-orange-500/10 rounded-lg flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
+                <Users className="w-6 h-6 text-orange-500" />
               </div>
               <h3 className="font-semibold text-lg mb-2 text-foreground">Join Community</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -97,18 +133,24 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-card/30 border-y border-border/50 py-16 px-4">
+      <section className="bg-gradient-to-b from-card/30 to-card/10 border-y border-border/50 py-16 px-4">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          <div>
-            <div className="text-4xl md:text-5xl font-bold text-primary mb-2">500+</div>
+          <div className="group">
+            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform inline-block">
+              500+
+            </div>
             <div className="text-muted-foreground font-medium">Coding Problems</div>
           </div>
-          <div>
-            <div className="text-4xl md:text-5xl font-bold text-primary mb-2">10+</div>
+          <div className="group">
+            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform inline-block">
+              10+
+            </div>
             <div className="text-muted-foreground font-medium">Programming Languages</div>
           </div>
-          <div>
-            <div className="text-4xl md:text-5xl font-bold text-primary mb-2">24/7</div>
+          <div className="group">
+            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform inline-block">
+              24/7
+            </div>
             <div className="text-muted-foreground font-medium">Online Compiler Access</div>
           </div>
         </div>
