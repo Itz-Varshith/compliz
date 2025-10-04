@@ -6,21 +6,22 @@ import { NextResponse } from 'next/server'
  */
 export async function middleware(req) {
   const res = NextResponse.next()
-
-  // Create a Supabase client configured to use cookies
   const supabase = createMiddlewareClient({ req, res })
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-  // Refresh session if expired - required for Server Components
-  const { data: { session } } = await supabase.auth.getSession()
+  const pathname = req.nextUrl.pathname
 
-  // Define your public routes that don't require authentication
-  const publicRoutes = ['/', '/compiler', '/login', '/auth/callback']
+  // Define public routes, removing '/' to be handled separately
+  const publicRoutes = ['/compiler', '/login', '/auth/callback']
 
   // Check if the current route is public
-  const isPublicRoute = publicRoutes.some(route => req.nextUrl.pathname.startsWith(route))
+  // This now checks for the homepage exactly OR if the path starts with another public route.
+  const isPublicRoute =
+    pathname === '/' || publicRoutes.some(route => pathname.startsWith(route))
 
-  // If the user is not logged in and is trying to access a protected route,
-  // redirect them to the /login page.
+  // If it's a protected route and the user isn't logged in, redirect
   if (!session && !isPublicRoute) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
