@@ -1771,6 +1771,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { createClient } from "@/lib/supabase/client"
+
 
 const languageTemplates = {
   cpp: `class Solution {
@@ -1857,49 +1859,71 @@ export default function SolvePage({ params }) {
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const editorRef = useRef(null)
 
+ const [token, setToken] = useState(null)
+ const supabase = createClient()
   useEffect(() => {
-    const fetchQuestion = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const response = await fetch(`http://localhost:5000/question/one/${questionId}`)
+    const getToken = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const data = await response.json()
-        console.log("API Response:", data)
-
-        if (data.success && data.questionData) {
-          // Ensure all array fields exist and are arrays
-          const questionData = {
-            ...data.questionData,
-            examples: Array.isArray(data.questionData.examples) ? data.questionData.examples : [],
-            testCases: Array.isArray(data.questionData.testCases) ? data.questionData.testCases : [],
-            constraints: Array.isArray(data.questionData.constraints) ? data.questionData.constraints : [],
-            topics: Array.isArray(data.questionData.topics) ? data.questionData.topics : [],
-            hints: Array.isArray(data.questionData.hints) ? data.questionData.hints : [],
-            accepted_submissions: data.questionData.accepted_submissions || 0,
-            total_submissions: data.questionData.total_submissions || 0,
-            timeLimit: data.questionData.timeLimit || 1,
-            memoryLimit: data.questionData.memoryLimit || 128,
-          }
-          setQuestion(questionData)
-          setSubmissions(submissionsData[questionId] || [])
-        } else {
-          throw new Error(data.message || "Failed to fetch question")
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch question")
-        console.error("Error fetching question:", err)
-      } finally {
-        setIsLoading(false)
+      if (session) {
+        setToken(session.access_token)  // ✅ JWT here
       }
     }
 
-    fetchQuestion()
-  }, [questionId])
+    getToken()
+  }, [token])
+
+ useEffect(() => {
+  if (!token) return  // don't fetch until token is set
+
+  const fetchQuestion = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      const response = await fetch(`http://localhost:5000/question/one/${questionId}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.questionData) {
+        const questionData = {
+          ...data.questionData,
+          examples: Array.isArray(data.questionData.examples) ? data.questionData.examples : [],
+          testCases: Array.isArray(data.questionData.testCases) ? data.questionData.testCases : [],
+          constraints: Array.isArray(data.questionData.constraints) ? data.questionData.constraints : [],
+          topics: Array.isArray(data.questionData.topics) ? data.questionData.topics : [],
+          hints: Array.isArray(data.questionData.hints) ? data.questionData.hints : [],
+          accepted_submissions: data.questionData.accepted_submissions || 0,
+          total_submissions: data.questionData.total_submissions || 0,
+          timeLimit: data.questionData.timeLimit || 1,
+          memoryLimit: data.questionData.memoryLimit || 128,
+        }
+        setQuestion(questionData)
+        setSubmissions(submissionsData[questionId] || [])
+      } else {
+        throw new Error(data.message || "Failed to fetch question")
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch question")
+      console.error("Error fetching question:", err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  fetchQuestion()
+}, [questionId, token])  // ✅ add token dependency
+
 
   useEffect(() => {
     let interval
