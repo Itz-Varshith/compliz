@@ -2403,6 +2403,715 @@
 //     </div>
 //   )
 // }
+// "use client"
+
+// import { useState, useRef, use, useEffect } from "react"
+// import Editor from "@monaco-editor/react"
+// import {
+//   Play,
+//   Copy,
+//   Terminal,
+//   SunIcon,
+//   CheckCircle2,
+//   XCircle,
+//   Clock,
+//   TrendingUp,
+//   Lightbulb,
+//   ChevronDown,
+//   Pause,
+//   Loader2,
+//   Code2,
+// } from "lucide-react"
+// import { Button } from "@/components/ui/button"
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+// import { Card } from "@/components/ui/card"
+// import { Badge } from "@/components/ui/badge"
+// import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+// import { createClient } from "@/lib/supabase/client"
+
+// const languageTemplates = {
+//   cpp: `// Write your code here`,
+//   javascript: `/**
+// * @param {any} input
+// * @return {any}
+// */
+// var solution = function(input) {
+//     // Write your solution here
+    
+// };`,
+//   python: `class Solution:
+//     def solve(self, input):
+//         # Write your solution here
+//         pass`,
+//   java: `class Solution {
+//     public void solve() {
+//         // Write your solution here
+        
+//     }
+// }`,
+// }
+
+// const submissionsData = {
+//   1: [
+//     {
+//       id: 1,
+//       timestamp: "2025-02-10 14:30:25",
+//       status: "Accepted",
+//       runtime: "52 ms",
+//       memory: "16.2 MB",
+//       language: "C++",
+//     },
+//     {
+//       id: 2,
+//       timestamp: "2025-02-10 14:25:10",
+//       status: "Wrong Answer",
+//       runtime: "N/A",
+//       memory: "N/A",
+//       language: "C++",
+//     },
+//     {
+//       id: 3,
+//       timestamp: "2025-02-10 14:20:45",
+//       status: "Time Limit Exceeded",
+//       runtime: "N/A",
+//       memory: "15.8 MB",
+//       language: "Python",
+//     },
+//   ],
+//   2: [
+//     {
+//       id: 1,
+//       timestamp: "2025-02-09 10:15:30",
+//       status: "Accepted",
+//       runtime: "8 ms",
+//       memory: "10.5 MB",
+//       language: "JavaScript",
+//     },
+//   ],
+// }
+
+// export default function SolvePage({ params }) {
+//   const resolvedParams = use(params)
+//   const questionId = resolvedParams.id
+
+//   const [question, setQuestion] = useState(null)
+//   const [submissions, setSubmissions] = useState([])
+//   const [isLoading, setIsLoading] = useState(true)
+//   const [error, setError] = useState(null)
+
+//   const [activeTab, setActiveTab] = useState("description")
+//   const [language, setLanguage] = useState("cpp")
+//   const [code, setCode] = useState(languageTemplates.cpp)
+//   const [customInput, setCustomInput] = useState("")
+//   const [output, setOutput] = useState([])
+//   const [isRunning, setIsRunning] = useState(false)
+//   const [isDark, setIsDark] = useState(true)
+//   const [time, setTime] = useState(0)
+//   const [isTimerRunning, setIsTimerRunning] = useState(false)
+//   const [solutionCode, setSolutionCode] = useState("")
+//   const editorRef = useRef(null)
+
+//   const [token, setToken] = useState(null)
+//   const supabase = createClient()
+//   useEffect(() => {
+//     const getToken = async () => {
+//       const {
+//         data: { session },
+//       } = await supabase.auth.getSession()
+
+//       if (session) {
+//         setToken(session.access_token) // ✅ JWT here
+//       }
+//     }
+
+//     getToken()
+//   }, [token])
+
+//   useEffect(() => {
+//     if (!token) return // don't fetch until token is set
+
+//     const fetchQuestion = async () => {
+//       try {
+//         setIsLoading(true)
+//         setError(null)
+
+//         const response = await fetch(`http://localhost:5000/question/one/${questionId}`, {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//           },
+//         })
+
+//         if (!response.ok) {
+//           throw new Error(`HTTP error! status: ${response.status}`)
+//         }
+
+//         const data = await response.json()
+
+//         if (data.success && data.questionData) {
+//           const questionData = {
+//             ...data.questionData,
+//             examples: Array.isArray(data.questionData.examples) ? data.questionData.examples : [],
+//             testCases: Array.isArray(data.questionData.testCases) ? data.questionData.testCases : [],
+//             constraints: Array.isArray(data.questionData.constraints) ? data.questionData.constraints : [],
+//             topics: Array.isArray(data.questionData.topics) ? data.questionData.topics : [],
+//             hints: Array.isArray(data.questionData.hints) ? data.questionData.hints : [],
+//             accepted_submissions: data.questionData.accepted_submissions || 0,
+//             total_submissions: data.questionData.total_submissions || 0,
+//             timeLimit: data.questionData.timeLimit || 1,
+//             memoryLimit: data.questionData.memoryLimit || 128,
+//           }
+//           setQuestion(questionData)
+//           setSolutionCode(data.questionData.solutionCode || "")
+//           setSubmissions(submissionsData[questionId] || [])
+//         } else {
+//           throw new Error(data.message || "Failed to fetch question")
+//         }
+//       } catch (err) {
+//         setError(err instanceof Error ? err.message : "Failed to fetch question")
+//         console.error("Error fetching question:", err)
+//       } finally {
+//         setIsLoading(false)
+//       }
+//     }
+
+//     fetchQuestion()
+//   }, [questionId, token]) // ✅ add token dependency
+
+//   useEffect(() => {
+//     let interval
+//     if (isTimerRunning) {
+//       interval = setInterval(() => {
+//         setTime((prevTime) => prevTime + 1)
+//       }, 1000)
+//     }
+//     return () => clearInterval(interval)
+//   }, [isTimerRunning])
+
+//   useEffect(() => {
+//     if (isDark) {
+//       document.documentElement.classList.add("dark")
+//     } else {
+//       document.documentElement.classList.remove("dark")
+//     }
+//   }, [isDark])
+
+//   const formatTime = (seconds) => {
+//     const hrs = Math.floor(seconds / 3600)
+//     const mins = Math.floor((seconds % 3600) / 60)
+//     const secs = seconds % 60
+//     return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+//   }
+
+//   const languageOptions = [
+//     { value: "cpp", label: "C++" },
+//     { value: "javascript", label: "JavaScript" },
+//     { value: "python", label: "Python" },
+//     { value: "java", label: "Java" },
+//   ]
+
+//   const handleLanguageChange = (newLang) => {
+//     setLanguage(newLang)
+//     setCode(languageTemplates[newLang])
+//     setOutput([])
+//   }
+
+//   const handleEditorDidMount = (editor) => {
+//     editorRef.current = editor
+//   }
+
+//   const runCode = () => {
+//     setIsRunning(true)
+//     setOutput([])
+
+//     setTimeout(() => {
+//       setOutput([
+//         { type: "log", message: "Running test cases..." },
+//         { type: "log", message: "Test case 1: Passed ✓" },
+//         { type: "log", message: "Test case 2: Passed ✓" },
+//         { type: "log", message: "Runtime: 52 ms" },
+//         { type: "log", message: "Memory: 16.2 MB" },
+//       ])
+//       setIsRunning(false)
+//     }, 1500)
+//   }
+
+//   const submitCode = () => {
+//     setIsRunning(true)
+//     setOutput([])
+
+//     setTimeout(() => {
+//       setOutput([
+//         { type: "log", message: "Submitting solution..." },
+//         { type: "log", message: "All test cases passed! ✓" },
+//         { type: "log", message: "Accepted" },
+//         { type: "log", message: "Runtime: 52 ms (Beats 85.2%)" },
+//         { type: "log", message: "Memory: 16.2 MB (Beats 72.4%)" },
+//       ])
+//       setIsRunning(false)
+//     }, 2000)
+//   }
+
+//   const copyCode = () => {
+//     navigator.clipboard.writeText(code)
+//   }
+
+//   const getDifficultyColor = (difficulty) => {
+//     switch (difficulty) {
+//       case "Easy":
+//         return "text-green-600 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-950/30 dark:border-green-800"
+//       case "Medium":
+//         return "text-yellow-600 bg-yellow-50 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-950/30 dark:border-yellow-800"
+//       case "Hard":
+//         return "text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-950/30 dark:border-red-800"
+//       default:
+//         return "text-gray-600 bg-gray-50 border-gray-200 dark:text-gray-400 dark:bg-gray-950/30 dark:border-gray-800"
+//     }
+//   }
+
+//   const getStatusColor = (status) => {
+//     switch (status) {
+//       case "Accepted":
+//         return "text-green-600 dark:text-green-400"
+//       case "Wrong Answer":
+//         return "text-red-600 dark:text-red-400"
+//       case "Time Limit Exceeded":
+//         return "text-yellow-600 dark:text-yellow-400"
+//       default:
+//         return "text-gray-600 dark:text-gray-400"
+//     }
+//   }
+
+//   const getStatusIcon = (status) => {
+//     switch (status) {
+//       case "Accepted":
+//         return <CheckCircle2 className="h-4 w-4" />
+//       case "Wrong Answer":
+//         return <XCircle className="h-4 w-4" />
+//       default:
+//         return <Clock className="h-4 w-4" />
+//     }
+//   }
+
+//   if (isLoading) {
+//     return (
+//       <div className="flex h-screen items-center justify-center bg-background">
+//         <div className="text-center">
+//           <Loader2 size={48} className="mx-auto mb-4 text-primary animate-spin" />
+//           <h3 className="text-xl font-semibold text-foreground mb-2">Loading question...</h3>
+//           <p className="text-muted-foreground">Please wait</p>
+//         </div>
+//       </div>
+//     )
+//   }
+
+//   if (error || !question) {
+//     return (
+//       <div className="flex h-screen items-center justify-center bg-background">
+//         <div className="text-center max-w-md">
+//           <XCircle size={48} className="mx-auto mb-4 text-destructive" />
+//           <h3 className="text-xl font-semibold text-foreground mb-2">Error loading question</h3>
+//           <p className="text-muted-foreground mb-4">{error || "Question not found"}</p>
+//           <Button onClick={() => window.location.reload()} variant="outline">
+//             Retry
+//           </Button>
+//         </div>
+//       </div>
+//     )
+//   }
+
+//   const acceptanceRate =
+//     question.total_submissions > 0
+//       ? ((question.accepted_submissions / question.total_submissions) * 100).toFixed(1)
+//       : "0.0"
+
+//   return (
+//     <div className="flex h-screen bg-background overflow-hidden">
+//       {/* Left Panel - Problem Description */}
+//       <div className="w-1/2 border-r border-border flex flex-col">
+//         <div className="flex-1 overflow-auto">
+//           <div className="p-6">
+//             {/* Problem Header */}
+//             <div className="mb-6">
+//               <div className="flex items-center gap-3 mb-3">
+//                 <h1 className="text-2xl font-bold text-foreground text-balance">
+//                   {question.title || "Untitled Problem"}
+//                 </h1>
+//               </div>
+//               <div className="flex items-center gap-2 flex-wrap">
+//                 {question.topics &&
+//                   question.topics.length > 0 &&
+//                   question.topics.map((topic, idx) => (
+//                     <Badge key={idx} variant="outline" className="text-xs">
+//                       {topic}
+//                     </Badge>
+//                   ))}
+//               </div>
+//             </div>
+
+//             {/* Tabs */}
+//             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+//               <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
+//                 <TabsTrigger
+//                   value="description"
+//                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+//                 >
+//                   Description
+//                 </TabsTrigger>
+//                 <TabsTrigger
+//                   value="hints"
+//                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+//                 >
+//                   Hints
+//                 </TabsTrigger>
+//                 <TabsTrigger
+//                   value="submissions"
+//                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+//                 >
+//                   Submissions
+//                 </TabsTrigger>
+//                 <TabsTrigger
+//                   value="solutions"
+//                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+//                 >
+//                   Solutions
+//                 </TabsTrigger>
+//               </TabsList>
+
+//               <TabsContent value="description" className="mt-6 space-y-6">
+//                 {/* Description */}
+//                 <div>
+//                   <p className="text-foreground leading-relaxed whitespace-pre-line text-pretty">
+//                     {question.description || "No description available"}
+//                   </p>
+//                 </div>
+
+//                 {/* Examples */}
+//                 {question.examples && question.examples.length > 0 && (
+//                   <div className="space-y-4">
+//                     {question.examples.map((example, idx) => (
+//                       <Card key={example._id || idx} className="p-4 bg-muted/50 border-muted">
+//                         <p className="font-semibold mb-3 text-foreground">Example {idx + 1}:</p>
+//                         <div className="space-y-2 font-mono text-sm">
+//                           <div className="bg-background/50 p-3 rounded-md">
+//                             <span className="font-semibold text-muted-foreground">Input:</span>{" "}
+//                             <span className="text-foreground">{example.input || "N/A"}</span>
+//                           </div>
+//                           <div className="bg-background/50 p-3 rounded-md">
+//                             <span className="font-semibold text-muted-foreground">Output:</span>{" "}
+//                             <span className="text-foreground">{example.output || "N/A"}</span>
+//                           </div>
+//                           {example.explanation && example.explanation !== "--" && (
+//                             <div className="bg-background/50 p-3 rounded-md">
+//                               <span className="font-semibold text-muted-foreground">Explanation:</span>{" "}
+//                               <span className="text-foreground">{example.explanation}</span>
+//                             </div>
+//                           )}
+//                         </div>
+//                       </Card>
+//                     ))}
+//                   </div>
+//                 )}
+
+//                 {/* Constraints */}
+//                 {question.constraints && question.constraints.length > 0 && (
+//                   <div>
+//                     <h3 className="font-semibold mb-3 text-foreground">Constraints:</h3>
+//                     <ul className="space-y-2 font-mono text-sm">
+//                       {question.constraints.map((constraint, idx) => (
+//                         <li key={idx} className="text-muted-foreground">
+//                           • {constraint}
+//                         </li>
+//                       ))}
+//                     </ul>
+//                   </div>
+//                 )}
+
+//                 {/* Time and Memory Limits */}
+//                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+//                   <div className="bg-muted/30 p-4 rounded-lg">
+//                     <p className="text-sm text-muted-foreground mb-1">Time Limit</p>
+//                     <p className="text-lg font-semibold text-foreground">{question.timeLimit} s</p>
+//                   </div>
+//                   <div className="bg-muted/30 p-4 rounded-lg">
+//                     <p className="text-sm text-muted-foreground mb-1">Memory Limit</p>
+//                     <p className="text-lg font-semibold text-foreground">{question.memoryLimit} MB</p>
+//                   </div>
+//                 </div>
+
+//                 {/* Stats */}
+//                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+//                   <div className="bg-muted/30 p-4 rounded-lg">
+//                     <p className="text-sm text-muted-foreground mb-1">Accepted</p>
+//                     <p className="text-lg font-semibold text-foreground">
+//                       {question.accepted_submissions.toLocaleString()}
+//                     </p>
+//                   </div>
+//                   <div className="bg-muted/30 p-4 rounded-lg">
+//                     <p className="text-sm text-muted-foreground mb-1">Submissions</p>
+//                     <p className="text-lg font-semibold text-foreground">
+//                       {question.total_submissions.toLocaleString()}
+//                     </p>
+//                   </div>
+//                   <div className="col-span-2 bg-muted/30 p-4 rounded-lg">
+//                     <p className="text-sm text-muted-foreground mb-1">Acceptance Rate</p>
+//                     <div className="flex items-center gap-2">
+//                       <p className="text-lg font-semibold text-foreground">{acceptanceRate}%</p>
+//                       <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+//                     </div>
+//                   </div>
+//                 </div>
+//               </TabsContent>
+
+//               <TabsContent value="hints" className="mt-6">
+//                 <div className="space-y-3">
+//                   {!question.hints || question.hints.length === 0 ? (
+//                     <Card className="p-8 text-center border-dashed">
+//                       <Lightbulb className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+//                       <p className="text-muted-foreground">No hints available for this problem</p>
+//                     </Card>
+//                   ) : (
+//                     question.hints.map((hint, idx) => (
+//                       <Collapsible key={idx}>
+//                         <Card className="overflow-hidden border-muted">
+//                           <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+//                             <div className="flex items-center gap-2">
+//                               <Lightbulb className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+//                               <span className="font-semibold text-foreground">Hint {idx + 1}</span>
+//                             </div>
+//                             <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180 text-muted-foreground" />
+//                           </CollapsibleTrigger>
+//                           <CollapsibleContent>
+//                             <div className="p-4 pt-0 border-t bg-muted/30">
+//                               <p className="text-base text-foreground leading-relaxed">{hint}</p>
+//                             </div>
+//                           </CollapsibleContent>
+//                         </Card>
+//                       </Collapsible>
+//                     ))
+//                   )}
+//                 </div>
+//               </TabsContent>
+
+//               <TabsContent value="submissions" className="mt-6">
+//                 <div className="space-y-3">
+//                   {!submissions || submissions.length === 0 ? (
+//                     <Card className="p-8 text-center border-dashed">
+//                       <Terminal className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+//                       <p className="text-muted-foreground mb-1">No submissions yet</p>
+//                       <p className="text-sm text-muted-foreground">Submit your solution to see it here</p>
+//                     </Card>
+//                   ) : (
+//                     submissions.map((submission) => (
+//                       <Card
+//                         key={submission.id}
+//                         className="p-4 hover:bg-muted/50 transition-colors cursor-pointer border-muted"
+//                       >
+//                         <div className="flex items-center justify-between">
+//                           <div className="flex items-center gap-3">
+//                             <div className={getStatusColor(submission.status)}>{getStatusIcon(submission.status)}</div>
+//                             <div>
+//                               <p className={`font-semibold ${getStatusColor(submission.status)}`}>
+//                                 {submission.status}
+//                               </p>
+//                               <p className="text-sm text-muted-foreground">{submission.timestamp}</p>
+//                             </div>
+//                           </div>
+//                           <div className="text-right text-sm">
+//                             <p className="text-muted-foreground font-medium">{submission.language}</p>
+//                             {submission.runtime !== "N/A" && (
+//                               <p className="text-muted-foreground">
+//                                 {submission.runtime} • {submission.memory}
+//                               </p>
+//                             )}
+//                           </div>
+//                         </div>
+//                       </Card>
+//                     ))
+//                   )}
+//                 </div>
+//               </TabsContent>
+
+//               <TabsContent value="solutions" className="mt-6">
+//                 {!solutionCode || solutionCode.trim() === "" ? (
+//                   <Card className="p-8 text-center border-dashed">
+//                     <Code2 className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+//                     <p className="text-muted-foreground mb-2">No solution available yet</p>
+//                     <p className="text-sm text-muted-foreground">
+//                       Solutions will be available after you solve this problem
+//                     </p>
+//                   </Card>
+//                 ) : (
+//                   <div className="space-y-4">
+//                     <div className="flex items-center justify-between">
+//                       <div className="flex items-center gap-2">
+//                         <Code2 className="h-5 w-5 text-primary" />
+//                         <h3 className="font-semibold text-foreground">Official Solution</h3>
+//                       </div>
+//                       <Button
+//                         onClick={() => navigator.clipboard.writeText(solutionCode)}
+//                         variant="outline"
+//                         size="sm"
+//                         className="gap-2"
+//                       >
+//                         <Copy size={14} />
+//                         Copy
+//                       </Button>
+//                     </div>
+//                     <Card className="overflow-hidden border-muted">
+//                       <div className="bg-muted/30 px-4 py-2 border-b border-border">
+//                         <p className="text-sm text-muted-foreground font-medium">Solution Code</p>
+//                       </div>
+//                       <div className="h-[500px]">
+//                         <Editor
+//                           height="100%"
+//                           language="cpp"
+//                           theme={isDark ? "vs-dark" : "light"}
+//                           value={solutionCode}
+//                           options={{
+//                             readOnly: true,
+//                             fontSize: 14,
+//                             minimap: { enabled: false },
+//                             scrollBeyondLastLine: false,
+//                             lineNumbers: "on",
+//                             roundedSelection: false,
+//                             padding: { top: 16, bottom: 16 },
+//                           }}
+//                         />
+//                       </div>
+//                     </Card>
+//                   </div>
+//                 )}
+//               </TabsContent>
+//             </Tabs>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Right Panel - Code Editor */}
+//       <div className="w-1/2 flex flex-col bg-background">
+//         <div className="bg-muted/30 px-4 py-3 flex items-center justify-between border-b border-border">
+//           <div className="flex items-center gap-4">
+//             <select
+//               value={language}
+//               onChange={(e) => handleLanguageChange(e.target.value)}
+//               className="bg-background text-foreground px-4 py-2 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
+//             >
+//               {languageOptions.map((opt) => (
+//                 <option key={opt.value} value={opt.value}>
+//                   {opt.label}
+//                 </option>
+//               ))}
+//             </select>
+
+//             <div className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-md border border-border">
+//               <Clock className="h-4 w-4 text-muted-foreground" />
+//               <span className="font-mono text-sm font-medium text-foreground">{formatTime(time)}</span>
+//               <Button
+//                 onClick={() => setIsTimerRunning(!isTimerRunning)}
+//                 variant="ghost"
+//                 size="icon"
+//                 className="h-6 w-6 ml-1"
+//               >
+//                 {isTimerRunning ? <Pause size={14} /> : <Play size={14} />}
+//               </Button>
+//             </div>
+//           </div>
+
+//           <div className="flex gap-2">
+//             <Button onClick={copyCode} variant="outline" size="sm" className="gap-2 bg-transparent">
+//               <Copy size={16} />
+//               <span className="hidden sm:inline">Copy</span>
+//             </Button>
+//             <Button onClick={() => setIsDark(!isDark)} variant="outline" size="sm" className="gap-2">
+//               <SunIcon size={16} />
+//             </Button>
+            
+//             <Button
+//               onClick={submitCode}
+//               disabled={isRunning}
+//               size="sm"
+//               className="gap-2 bg-green-600 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700"
+//             >
+//               Submit
+//             </Button>
+//           </div>
+//         </div>
+
+//         {/* Monaco Editor */}
+//         <div className="flex-1 overflow-hidden">
+//           <Editor
+//             height="100%"
+//             language={language}
+//             theme={isDark ? "vs-dark" : "light"}
+//             value={code}
+//             onChange={(value) => setCode(value || "")}
+//             onMount={handleEditorDidMount}
+//             options={{
+//               fontSize: 14,
+//               minimap: { enabled: false },
+//               scrollBeyondLastLine: false,
+//               lineNumbers: "on",
+//               roundedSelection: false,
+//               padding: { top: 16, bottom: 16 },
+//             }}
+//           />
+//         </div>
+
+//         {/* Input/Output Section */}
+//         <div className="h-64 border-t border-border flex flex-col bg-background">
+//           <Tabs defaultValue="testcase" className="flex-1 flex flex-col">
+//             <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent px-4">
+//               <TabsTrigger
+//                 value="testcase"
+//                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+//               >
+//                 Testcase
+//               </TabsTrigger>
+//               <TabsTrigger
+//                 value="result"
+//                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+//               >
+//                 Test Result
+//               </TabsTrigger>
+//             </TabsList>
+
+//             <TabsContent value="testcase" className="flex-1 p-4 overflow-auto">
+//               <div className="space-y-2">
+//                 <label className="text-sm font-medium text-foreground">Custom Input</label>
+//                 <textarea
+//                   value={customInput}
+//                   onChange={(e) => setCustomInput(e.target.value)}
+//                   placeholder="Enter your test input here..."
+//                   className="w-full h-24 p-3 bg-muted border border-border rounded-md font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder:text-muted-foreground"
+//                 />
+//               </div>
+//             </TabsContent>
+
+//             <TabsContent value="result" className="flex-1 p-4 overflow-auto font-mono text-sm">
+//               {!output || output.length === 0 ? (
+//                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+//                   <Terminal size={32} className="mb-2 opacity-50" />
+//                   <p className="text-sm">Run code to see output</p>
+//                 </div>
+//               ) : (
+//                 <div className="space-y-2">
+//                   {output.map((log, index) => (
+//                     <div
+//                       key={index}
+//                       className={`p-2 rounded ${log.type === "error" ? "bg-destructive/10 text-destructive" : "text-foreground bg-muted/30"}`}
+//                     >
+//                       {log.message}
+//                     </div>
+//                   ))}
+//                 </div>
+//               )}
+//             </TabsContent>
+//           </Tabs>
+//         </div>
+//       </div>
+//     </div>
+//   )
+// }
 "use client"
 
 import { useState, useRef, use, useEffect } from "react"
@@ -2430,11 +3139,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { createClient } from "@/lib/supabase/client"
 
 const languageTemplates = {
-  cpp: `class Solution {
-public:
-    // Write your solution here
-    
-};`,
+  cpp: `// Write your code here`,
   javascript: `/**
 * @param {any} input
 * @return {any}
@@ -2554,7 +3259,7 @@ export default function SolvePage({ params }) {
         if (data.success && data.questionData) {
           const questionData = {
             ...data.questionData,
-            examples: Array.isArray(data.questionData.examples) ? data.questionData.examples : [],
+            examples: data.questionData.examples || { input: "", output: "" },
             testCases: Array.isArray(data.questionData.testCases) ? data.questionData.testCases : [],
             constraints: Array.isArray(data.questionData.constraints) ? data.questionData.constraints : [],
             topics: Array.isArray(data.questionData.topics) ? data.questionData.topics : [],
@@ -2790,29 +3495,27 @@ export default function SolvePage({ params }) {
                 </div>
 
                 {/* Examples */}
-                {question.examples && question.examples.length > 0 && (
+                {question.examples && (question.examples.input || question.examples.output) && (
                   <div className="space-y-4">
-                    {question.examples.map((example, idx) => (
-                      <Card key={example._id || idx} className="p-4 bg-muted/50 border-muted">
-                        <p className="font-semibold mb-3 text-foreground">Example {idx + 1}:</p>
-                        <div className="space-y-2 font-mono text-sm">
-                          <div className="bg-background/50 p-3 rounded-md">
-                            <span className="font-semibold text-muted-foreground">Input:</span>{" "}
-                            <span className="text-foreground">{example.input || "N/A"}</span>
-                          </div>
-                          <div className="bg-background/50 p-3 rounded-md">
-                            <span className="font-semibold text-muted-foreground">Output:</span>{" "}
-                            <span className="text-foreground">{example.output || "N/A"}</span>
-                          </div>
-                          {example.explanation && example.explanation !== "--" && (
-                            <div className="bg-background/50 p-3 rounded-md">
-                              <span className="font-semibold text-muted-foreground">Explanation:</span>{" "}
-                              <span className="text-foreground">{example.explanation}</span>
-                            </div>
-                          )}
+                    <Card className="p-4 bg-muted/50 border-muted">
+                      <p className="font-semibold mb-3 text-foreground">Example:</p>
+                      <div className="space-y-2 font-mono text-sm">
+                        <div className="bg-background/50 p-3 rounded-md">
+                          <span className="font-semibold text-muted-foreground">Input:</span>{" "}
+                          <span className="text-foreground">{question.examples.input || "N/A"}</span>
                         </div>
-                      </Card>
-                    ))}
+                        <div className="bg-background/50 p-3 rounded-md">
+                          <span className="font-semibold text-muted-foreground">Output:</span>{" "}
+                          <span className="text-foreground">{question.examples.output || "N/A"}</span>
+                        </div>
+                        {question.examples.explanation && question.examples.explanation !== "--" && (
+                          <div className="bg-background/50 p-3 rounded-md">
+                            <span className="font-semibold text-muted-foreground">Explanation:</span>{" "}
+                            <span className="text-foreground">{question.examples.explanation}</span>
+                          </div>
+                        )}
+                      </div>
+                    </Card>
                   </div>
                 )}
 
@@ -3029,10 +3732,7 @@ export default function SolvePage({ params }) {
             <Button onClick={() => setIsDark(!isDark)} variant="outline" size="sm" className="gap-2">
               <SunIcon size={16} />
             </Button>
-            <Button onClick={runCode} disabled={isRunning} variant="outline" size="sm" className="gap-2 bg-transparent">
-              <Play size={16} />
-              Run
-            </Button>
+
             <Button
               onClick={submitCode}
               disabled={isRunning}
