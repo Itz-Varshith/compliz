@@ -8,12 +8,8 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 
 // Import the newly added components
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export function Header() {
   const [user, setUser] = useState(null)
@@ -105,10 +101,8 @@ export function Header() {
               <PopoverTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10 border-2 border-primary/50">
-                    {/* You can add <AvatarImage src={user.user_metadata.avatar_url} /> if you have it */}
-                    <AvatarFallback className=" text-primary font-bold">
-                      {userInitial}
-                    </AvatarFallback>
+                    {/* You can add <AvatarImage src={user.user_metadata.avatar_url || "/placeholder.svg"} /> if you have it */}
+                    <AvatarFallback className=" text-primary font-bold">{userInitial}</AvatarFallback>
                   </Avatar>
                 </Button>
               </PopoverTrigger>
@@ -116,9 +110,7 @@ export function Header() {
                 <div className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{userName}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
                 <div className="my-2 h-px bg-border" />
@@ -129,11 +121,7 @@ export function Header() {
                       Profile
                     </Button>
                   </Link>
-                  <Button
-                    onClick={handleSignOut}
-                    variant="ghost"
-                    className="w-full justify-start gap-2 font-normal"
-                  >
+                  <Button onClick={handleSignOut} variant="ghost" className="w-full justify-start gap-2 font-normal">
                     <LogOut className="h-4 w-4" />
                     Sign Out
                   </Button>
@@ -154,5 +142,5 @@ export function Header() {
         </nav>
       </div>
     </header>
-  );
+  )
 }
