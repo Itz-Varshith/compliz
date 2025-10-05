@@ -7173,7 +7173,7 @@ export default function SolvePage({ params }) {
       : "0.0"
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-[calc(100vh-4rem)] bg-background overflow-hidden">
       {/* Left Panel - Problem Description */}
       <div className="w-1/2 border-r border-border flex flex-col">
         <div className="flex-1 overflow-auto">
