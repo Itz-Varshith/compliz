@@ -91,11 +91,10 @@ const codeSubmitHandler = async (req, res) => {
 
 const userCodeHandler = async (req, res) => {
   try {
-    console.log("Hello");
     
     const data = req.body;
     const code = data.code;
-    if (!code) {
+    if (!code || !data.name) {
       return res.status(400).json({
         success: false,
         message: "Provide the code to run",
@@ -148,6 +147,7 @@ const userCodeHandler = async (req, res) => {
         code: code,
         language: language,
         submissionData: submission.data,
+        name:data.name
       });
       await newUserSubmission.save();
       await prisma.userCodes.create({

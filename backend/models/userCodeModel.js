@@ -15,6 +15,10 @@ const userCodeSchema=new Schema({
     },
     submissionData:{
         type:JSON
+    },
+    name :{
+        type:String,
+        required:true
     }
 },{timestamps:true});
 
