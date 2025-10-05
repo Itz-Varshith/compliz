@@ -246,7 +246,7 @@ function App() {
 
   
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-[calc(100vh-4rem)]  overflow-hidden bg-background">
       {/* Editor Section */}
       <div className="w-3/5 overflow-hidden flex flex-col border-r border-border">
         {/* Editor Controls */}

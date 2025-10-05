@@ -239,7 +239,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="h-[calc(100vh-4rem)] bg-gradient-to-br from-background via-background to-muted/20">
       {/* <Header /> */}
 
       <div className="flex h-[calc(100vh-4rem)]">
@@ -323,13 +323,13 @@ export default function ProfilePage() {
                   <p className="text-muted-foreground">Here's your coding journey at a glance</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-4">
                   {statsData.map((stat, index) => (
                     <Card key={index} className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
                       <CardContent className="pt-6">
                         <div className="flex items-center justify-between mb-2">
                           <stat.icon className={`h-8 w-8 ${stat.color}`} />
-                          <div className="text-3xl font-bold">{stat.value}</div>
+                          <div className="text-3xl font-bold mr-5">{stat.value}</div>
                         </div>
                         <p className="text-sm text-muted-foreground">{stat.label}</p>
                       </CardContent>
@@ -346,6 +346,7 @@ export default function ProfilePage() {
                     <CardDescription>Your last 7 days of problem solving</CardDescription>
                   </CardHeader>
                   <CardContent>
+                  <div className="text-primary">
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={dailyProgress}>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -361,13 +362,13 @@ export default function ProfilePage() {
                         <Line
                           type="monotone"
                           dataKey="solved"
-                          stroke="hsl(var(--primary))"
                           strokeWidth={2}
-                          dot={{ fill: "hsl(var(--primary))" }}
+                          dot={{ fill: "currentColor" }}
                         />
                       </LineChart>
                     </ResponsiveContainer>
-                  </CardContent>
+                  </div>
+                </CardContent>
                 </Card>
               </TabsContent>
 
@@ -492,6 +493,7 @@ export default function ProfilePage() {
                       <CardDescription>Last 7 days activity</CardDescription>
                     </CardHeader>
                     <CardContent>
+                    <div className="text-[hsl(var(--chart-1))]">
                       <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={dailyProgress}>
                           <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -507,12 +509,12 @@ export default function ProfilePage() {
                           <Line
                             type="monotone"
                             dataKey="solved"
-                            stroke="hsl(var(--chart-1))"
                             strokeWidth={2}
-                            dot={{ fill: "hsl(var(--chart-1))" }}
+                            dot={{ fill: "currentColor" }} 
                           />
                         </LineChart>
                       </ResponsiveContainer>
+                    </div>
                     </CardContent>
                   </Card>
 
@@ -612,13 +614,7 @@ export default function ProfilePage() {
                               >
                                 <Copy className="h-4 w-4" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="gap-2 text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              
                               <CollapsibleTrigger asChild>
                                 <Button variant="ghost" size="sm">
                                   {expandedCode === codeSnippet.id ? (
