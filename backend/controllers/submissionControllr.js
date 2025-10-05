@@ -5,9 +5,9 @@ const prisma = new PrismaClient();
 
 const getAllSubmissionForAQuestion = async (req, res) => {
   try {
-    const qNumber = req.params.qId;
+    console.log("Inside")
+    const qNumber = req.params.qNumber;
     const userId = req.user.userId;
-
     if (!qNumber || !userId) {
       return res.status(400).json({
         success: false,
@@ -21,6 +21,7 @@ const getAllSubmissionForAQuestion = async (req, res) => {
         questionId: parseInt(qNumber), 
       },
     });
+    console.log(allSubmissions);
 
     return res.status(200).json({
       success: true,

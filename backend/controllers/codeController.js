@@ -55,6 +55,10 @@ const codeSubmitHandler = async (req, res) => {
         },
       }
     );
+    let isPassed=false;
+    if(submission.data.stdout==ques.testCases.output){
+      isPassed=true
+    }
     await prisma.submissions.create({
   data: {
     code: code,
@@ -63,14 +67,11 @@ const codeSubmitHandler = async (req, res) => {
     verdict: submission.data.status.description,
     langId: language,
     userID: { connect: { userId: req.user.userId } },
-    questionID: { connect: { questionId: parseInt(qId) } } 
+    questionID: { connect: { questionId: parseInt(qId) } },
+    isPassed:isPassed 
   }
 });
 
-    let isPassed=false;
-    if(submission.data.stdout==ques.testCases.output){
-      isPassed=true
-    }
     return res.status(200).json({
       success:true,
       message:"Code submitted successfully",

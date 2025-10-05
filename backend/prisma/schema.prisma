@@ -41,6 +41,7 @@ model Submissions {
   memoryUsed Int
   langId     String
   createdAt  DateTime @default(now())
+  isPassed Boolean @default(false)
 
   @@id([userId, createdAt])
 }
