@@ -58,9 +58,8 @@ const getAllSubmission = async (req, res) => {
     const questionUUIDs = submissions.map(
       (sub) => sub.questionID?.questionUUID
     ).filter(Boolean); 
-
     const questions = await Question.find({
-      questionUUID: { $in: questionUUIDs },
+      _id: { $in: questionUUIDs },
     });
 
     return res.status(200).json({

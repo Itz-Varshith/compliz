@@ -53,7 +53,7 @@ export function Header() {
         {/* Navigation */}
         <nav className="flex items-center gap-2">
           {/* Public Links */}
-          <Link href="/" asChild>
+          <Link href="/" >
             <Button
               variant="ghost"
               size="sm"
@@ -62,7 +62,7 @@ export function Header() {
               Home
             </Button>
           </Link>
-          <Link href="/compiler" asChild>
+          <Link href="/compiler" >
             <Button
               variant="ghost"
               size="sm"
@@ -73,7 +73,7 @@ export function Header() {
           </Link>
 
           {/* Protected Links */}
-          <Link href={user ? "/problem-set" : "/login"} asChild>
+          <Link href={user ? "/problem-set" : "/login"} >
             <Button
               variant="ghost"
               size="sm"
@@ -82,7 +82,7 @@ export function Header() {
               Problem Set
             </Button>
           </Link>
-          <Link href={user ? "/question" : "/login"} asChild>
+          <Link href={user ? "/question" : "/login"} >
             <Button
               variant="ghost"
               size="sm"
@@ -98,7 +98,7 @@ export function Header() {
           {/* Conditional UI: User Avatar Popover or Sign In Button */}
           {user ? (
             <Popover>
-              <PopoverTrigger asChild>
+              <PopoverTrigger >
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10 border-2 border-primary/50">
                     {/* You can add <AvatarImage src={user.user_metadata.avatar_url || "/placeholder.svg"} /> if you have it */}
@@ -115,7 +115,7 @@ export function Header() {
                 </div>
                 <div className="my-2 h-px bg-border" />
                 <div className="flex flex-col space-y-1">
-                  <Link href="/profile" asChild>
+                  <Link href="/profile" >
                     <Button variant="ghost" className="w-full justify-start gap-2 font-normal">
                       <User className="h-4 w-4" />
                       Profile
@@ -129,7 +129,7 @@ export function Header() {
               </PopoverContent>
             </Popover>
           ) : (
-            <Link href="/login" asChild>
+            <Link href="/login" >
               <Button
                 size="sm"
                 className="gap-2 bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 shadow-md"

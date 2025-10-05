@@ -4,6 +4,6 @@ import {authMiddleware} from "../middleware/authmiddleware.js";
 const submssionRouter=new Router();
 
 submssionRouter.get("/one/:qNumber",authMiddleware,getAllSubmissionForAQuestion);
-submssionRouter.get("/all",getAllSubmission)
+submssionRouter.get("/all",authMiddleware,getAllSubmission)
 
 export default submssionRouter;

@@ -232,4 +232,27 @@ const compileCodeHandler=async(req,res)=>{
     });
   }
 }
-export { codeSubmitHandler, userCodeHandler, compileCodeHandler };
+
+const getSavedCodes=async (req,res)=>{
+  try {
+    const userId=req.user.userId;
+    const allCodes=await userCode.find({
+      userId : userId
+    })
+    return res.status(200).json({
+      success:true,
+      message:"Saved codes fetched successfully",
+      allCodes
+    })
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success:false,
+      message:"Server error while fetching saved codes",
+      error:error
+    })
+  }
+}
+
+
+export { codeSubmitHandler, userCodeHandler, compileCodeHandler,getSavedCodes };
