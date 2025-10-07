@@ -40,12 +40,21 @@ const codeSubmitHandler = async (req, res) => {
         message: "Unsupported language",
       });
     }
-    const qId=data.qNumber;
-    const a=await prisma.question.findFirst({where:{questionId:parseInt(qId)}});
-    const ques=await Question.findById(a.questionUUID);
+    const qId = data.qNumber;
+    const a = await prisma.question.findFirst({
+      where: { questionId: parseInt(qId) },
+    });
+    const ques = await Question.findById(a.questionUUID);
     const submission = await axios.post(
       JUDGE0_URL,
-      { language_id: languageId, source_code: code, stdin:ques.testCases.input, time_limit:(ques.timeLimit),memory_limit:ques.memoryLimit*1000 },
+      {
+        language_id: languageId,
+        source_code: code,
+        stdin: ques.testCases.input,
+        time_limit: ques.timeLimit,
+        memory_limit: ques.memoryLimit * 1000,
+        expected_output : ques.testCases.output
+      },
       {
         params: { base64_encoded: "false", wait: "true", fields: "*" },
         headers: {
@@ -55,30 +64,25 @@ const codeSubmitHandler = async (req, res) => {
         },
       }
     );
-    let isPassed=false;
-    if(submission.data.stdout==ques.testCases.output){
-      isPassed=true
-    }
+    console.log(submission);
     await prisma.submissions.create({
-  data: {
-    code: code,
-    memoryUsed: submission.data.memory ?? 0,
-    timeUsed: parseInt(submission.data.time) || 0,
-    verdict: submission.data.status.description,
-    langId: language,
-    userID: { connect: { userId: req.user.userId } },
-    questionID: { connect: { questionId: parseInt(qId) } },
-    isPassed:isPassed 
-  }
-});
+      data: {
+        code: code,
+        memoryUsed: submission.data.memory ?? 0,
+        timeUsed: parseInt(submission.data.time) || 0,
+        verdict: submission.data.status.description,
+        langId: language,
+        userID: { connect: { userId: req.user.userId } },
+        questionID: { connect: { questionId: parseInt(qId) } },
+        isPassed: true,
+      },
+    });
 
     return res.status(200).json({
-      success:true,
-      message:"Code submitted successfully",
-      submission:submission.data,
-      isPassed
-    })
-
+      success: true,
+      message: "Code submitted successfully",
+      submission: submission.data,
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -91,7 +95,6 @@ const codeSubmitHandler = async (req, res) => {
 
 const userCodeHandler = async (req, res) => {
   try {
-    
     const data = req.body;
     const code = data.code;
     if (!code || !data.name) {
@@ -103,11 +106,11 @@ const userCodeHandler = async (req, res) => {
     const userInput = data.input;
     const language = data.language;
     const userId = req.user.userId;
-    if(!userId){
+    if (!userId) {
       return res.status(400).json({
-        success:false,
-        message:"User ID required to run and save code",
-      })
+        success: false,
+        message: "User ID required to run and save code",
+      });
     }
     if (!language) {
       return res.status(400).json({
@@ -147,7 +150,7 @@ const userCodeHandler = async (req, res) => {
         code: code,
         language: language,
         submissionData: submission.data,
-        name:data.name
+        name: data.name,
       });
       await newUserSubmission.save();
       await prisma.userCodes.create({
@@ -164,7 +167,7 @@ const userCodeHandler = async (req, res) => {
       submission: submission.data,
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(500).json({
       success: false,
       message: "Server error while running code",
@@ -173,9 +176,8 @@ const userCodeHandler = async (req, res) => {
   }
 };
 
-
-const compileCodeHandler=async(req,res)=>{
-   try {
+const compileCodeHandler = async (req, res) => {
+  try {
     const data = req.body;
     const code = data.code;
     if (!code) {
@@ -218,7 +220,7 @@ const compileCodeHandler=async(req,res)=>{
         },
       }
     );
-   
+
     return res.status(200).json({
       success: true,
       message: "Code executed successfully",
@@ -231,28 +233,32 @@ const compileCodeHandler=async(req,res)=>{
       error: error,
     });
   }
-}
+};
 
-const getSavedCodes=async (req,res)=>{
+const getSavedCodes = async (req, res) => {
   try {
-    const userId=req.user.userId;
-    const allCodes=await userCode.find({
-      userId : userId
-    })
+    const userId = req.user.userId;
+    const allCodes = await userCode.find({
+      userId: userId,
+    });
     return res.status(200).json({
-      success:true,
-      message:"Saved codes fetched successfully",
-      allCodes
-    })
+      success: true,
+      message: "Saved codes fetched successfully",
+      allCodes,
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
-      success:false,
-      message:"Server error while fetching saved codes",
-      error:error
-    })
+      success: false,
+      message: "Server error while fetching saved codes",
+      error: error,
+    });
   }
-}
+};
 
-
-export { codeSubmitHandler, userCodeHandler, compileCodeHandler,getSavedCodes };
+export {
+  codeSubmitHandler,
+  userCodeHandler,
+  compileCodeHandler,
+  getSavedCodes,
+};
