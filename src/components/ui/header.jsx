@@ -36,19 +36,14 @@ export function Header() {
   // Helper to get user's full name and initial
   const userName = user?.user_metadata?.full_name || user?.email || "User"
   const userInitial = userName?.charAt(0).toUpperCase() || "U"
-
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2 group">
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-orange-500 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-            <Code2 className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-2xl font-black bg-gradient-to-r from-primary via-orange-500 to-primary bg-clip-text text-transparent">
-            compliz
-          </span>
-        </Link>
+  <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
+  <div className="container mx-auto flex h-16 items-center justify-between px-4">
+    {/* Logo */}
+    <Link href="/" className="flex items-center space-x-1">
+      <span className="text-2xl font-bold tracking-widest text-orange-500">&gt;_</span>
+      <span className="text-2xl font-bold text-foreground">compliz</span>
+    </Link>
 
         {/* Navigation */}
         <nav className="flex items-center gap-2">
