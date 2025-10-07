@@ -40,7 +40,7 @@
 //     public static void main(String[] args) {
 //         System.out.println("Hello, World!");
 //         System.out.println("Java Programming");
-        
+
 //         // Example: Simple loop
 //         for (int i = 0; i < 5; i++) {
 //             System.out.println("Count: " + i);
@@ -55,7 +55,7 @@
 
 // int main() {
 //  // your code goes here
-    
+
 //     return 0;
 // }`,
 
@@ -64,12 +64,12 @@
 
 // int main() {
 //     printf("Hello, World!\\n");
-    
+
 //     // Example: Simple loop
 //     for (int i = 0; i < 5; i++) {
 //         printf("Count: %d\\n", i);
 //     }
-    
+
 //     return 0;
 // }`,
 // };
@@ -244,7 +244,6 @@
 
 //   const lineCount = code.split("\n").length;
 
-  
 //   return (
 //     <div className="flex h-[calc(100vh-4rem)]  overflow-hidden bg-background">
 //       {/* Editor Section */}
@@ -283,7 +282,7 @@
 //               <Download size={16} />
 //               <span className="hidden sm:inline">Download</span>
 //             </button>
-            
+
 //             {/* Save Code Button with Popover */}
 //             <Popover open={savePopoverOpen} onOpenChange={setSavePopoverOpen}>
 //               <PopoverTrigger asChild>
@@ -303,7 +302,7 @@
 //                       {user ? "Give your code a name to save it" : "Sign in to save your code"}
 //                     </p>
 //                   </div>
-                  
+
 //                   {user ? (
 //                     <>
 //                       <div className="space-y-2">
@@ -320,7 +319,7 @@
 //                           }}
 //                         />
 //                       </div>
-                      
+
 //                       {saveStatus && (
 //                         <div
 //                           className={`text-sm p-2 rounded-md ${
@@ -332,7 +331,7 @@
 //                           {saveStatus.message}
 //                         </div>
 //                       )}
-                      
+
 //                       <Button
 //                         onClick={handleSaveCode}
 //                         disabled={isSaving}
@@ -458,7 +457,7 @@
 //                   <span>{(executionResult.memory / 1024).toFixed(2)} MB</span>
 //                 </div>
 //               )}
-              
+
 //               {/* Test Case Result */}
 //               {expectedOutput.trim() && executionResult && executionResult.stdout && (
 //                 <div
@@ -524,17 +523,34 @@
 // }
 
 // export default App;
-"use client"
-import { useState, useRef, useEffect } from "react"
-import Editor from "@monaco-editor/react"
-import { Play, Copy, Download, Terminal, Clock, Database, CheckCircle2, XCircle, AlertCircle, Save } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
-import { Sun, Moon } from "lucide-react"
+"use client";
+import { useState, useRef, useEffect } from "react";
+import Editor from "@monaco-editor/react";
+import { useTheme } from "next-themes";
+import {
+  Play,
+  Copy,
+  Download,
+  Terminal,
+  Clock,
+  Database,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Save,
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { Sun, Moon } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const languageTemplates = {
   javascript: `// Welcome to JavaScript Editor
@@ -593,7 +609,7 @@ int main() {
     
     return 0;
 }`,
-}
+};
 
 // Language ID mapping for Judge0 API
 const languageIdMap = {
@@ -602,50 +618,58 @@ const languageIdMap = {
   python: "python",
   java: "java",
   javascript: "javascript",
-}
+};
 
 function App() {
-  const [language, setLanguage] = useState("cpp")
-  const [code, setCode] = useState(languageTemplates.cpp)
-  const [executionResult, setExecutionResult] = useState(null)
-  const [isRunning, setIsRunning] = useState(false)
-  const [isDark, setIsDark] = useState(false)
-  const [input, setInput] = useState("")
-  const [expectedOutput, setExpectedOutput] = useState("")
-  const [showCopied, setShowCopied] = useState(false)
-  const editorRef = useRef(null)
-  const [token, setToken] = useState(null)
-  const [user, setUser] = useState(null)
-  const [codeName, setCodeName] = useState("")
-  const [isSaving, setIsSaving] = useState(false)
-  const [savePopoverOpen, setSavePopoverOpen] = useState(false)
-  const [saveStatus, setSaveStatus] = useState(null)
-  const router = useRouter()
+  const [language, setLanguage] = useState("cpp");
+  const [code, setCode] = useState(languageTemplates.cpp);
+  const [executionResult, setExecutionResult] = useState(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [input, setInput] = useState("");
+  const [expectedOutput, setExpectedOutput] = useState("");
+  const [showCopied, setShowCopied] = useState(false);
+  const editorRef = useRef(null);
+  const [token, setToken] = useState(null);
+  const [user, setUser] = useState(null);
+  const [codeName, setCodeName] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [savePopoverOpen, setSavePopoverOpen] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null);
+  const router = useRouter();
 
-  const supabase = createClient()
+  // Use global theme
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  const supabase = createClient();
 
   // Get user session and token
   useEffect(() => {
     const getToken = async () => {
       const {
         data: { session },
-      } = await supabase.auth.getSession()
+      } = await supabase.auth.getSession();
 
       if (session) {
-        setToken(session.access_token)
+        setToken(session.access_token);
       }
-    }
+    };
 
     const getUser = async () => {
       const {
         data: { user },
-      } = await supabase.auth.getUser()
-      setUser(user)
-    }
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
 
-    getToken()
-    getUser()
-  }, [supabase])
+    getToken();
+    getUser();
+  }, [supabase]);
+
+  // Track mounting to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const languageOptions = [
     { value: "cpp", label: "C++" },
@@ -653,21 +677,21 @@ function App() {
     { value: "javascript", label: "JavaScript" },
     { value: "python", label: "Python" },
     { value: "java", label: "Java" },
-  ]
+  ];
 
   const handleLanguageChange = (newLang) => {
-    setLanguage(newLang)
-    setCode(languageTemplates[newLang] || "")
-    setExecutionResult(null)
-  }
+    setLanguage(newLang);
+    setCode(languageTemplates[newLang] || "");
+    setExecutionResult(null);
+  };
 
   const handleEditorDidMount = (editor) => {
-    editorRef.current = editor
-  }
+    editorRef.current = editor;
+  };
 
   const runCode = async () => {
-    setIsRunning(true)
-    setExecutionResult(null)
+    setIsRunning(true);
+    setExecutionResult(null);
 
     try {
       const response = await fetch("http://localhost:5000/code/compile", {
@@ -680,12 +704,12 @@ function App() {
           input,
           language: languageIdMap[language],
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (data?.success && data?.submission) {
-        setExecutionResult(data.submission)
+        setExecutionResult(data.submission);
       } else {
         setExecutionResult({
           stdout: null,
@@ -695,7 +719,7 @@ function App() {
           time: null,
           memory: null,
           exit_code: null,
-        })
+        });
       }
     } catch (error) {
       setExecutionResult({
@@ -706,51 +730,63 @@ function App() {
         time: null,
         memory: null,
         exit_code: null,
-      })
+      });
     } finally {
-      setIsRunning(false)
+      setIsRunning(false);
     }
-  }
+  };
 
   const copyCode = () => {
-    navigator.clipboard.writeText(code)
-    setShowCopied(true)
-    setTimeout(() => setShowCopied(false), 2000)
-  }
+    navigator.clipboard.writeText(code);
+    setShowCopied(true);
+    setTimeout(() => setShowCopied(false), 2000);
+  };
 
   const downloadCode = () => {
-    const extensions = { javascript: "js", python: "py", java: "java", cpp: "cpp", c: "c" }
-    const blob = new Blob([code], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `code.${extensions[language]}`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+    const extensions = {
+      javascript: "js",
+      python: "py",
+      java: "java",
+      cpp: "cpp",
+      c: "c",
+    };
+    const blob = new Blob([code], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `code.${extensions[language]}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleSaveCode = async () => {
     // Check if user is logged in
     if (!user) {
-      router.push("/login")
-      return
+      router.push("/login");
+      return;
     }
 
     // Validate non-empty code name
-    const nameToSend = (codeName || "").trim()
+    const nameToSend = (codeName || "").trim();
     if (!nameToSend) {
-      setSaveStatus({ type: "error", message: "Please provide a non-empty code name." })
-      return
+      setSaveStatus({
+        type: "error",
+        message: "Please provide a non-empty code name.",
+      });
+      return;
     }
 
     try {
-      setIsSaving(true)
-      setSaveStatus(null)
+      setIsSaving(true);
+      setSaveStatus(null);
 
       // Ensure we have a token
       if (!token) {
-        setSaveStatus({ type: "error", message: "No user session found. Please log in again." })
-        return
+        setSaveStatus({
+          type: "error",
+          message: "No user session found. Please log in again.",
+        });
+        return;
       }
 
       const response = await fetch("http://localhost:5000/code/self", {
@@ -765,50 +801,62 @@ function App() {
           input,
           language: languageIdMap[language],
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (data?.success) {
-        setSaveStatus({ type: "success", message: data?.message || "Code saved successfully." })
+        setSaveStatus({
+          type: "success",
+          message: data?.message || "Code saved successfully.",
+        });
         // Optionally reflect returned submission in Output panel
         if (data?.submission) {
-          setExecutionResult(data.submission)
+          setExecutionResult(data.submission);
         }
         // Close popover after a brief delay
-        setTimeout(() => setSavePopoverOpen(false), 800)
+        setTimeout(() => setSavePopoverOpen(false), 800);
       } else {
-        setSaveStatus({ type: "error", message: data?.message || "Failed to save code." })
+        setSaveStatus({
+          type: "error",
+          message: data?.message || "Failed to save code.",
+        });
       }
     } catch (err) {
-      setSaveStatus({ type: "error", message: err?.message || "Unexpected error while saving." })
+      setSaveStatus({
+        type: "error",
+        message: err?.message || "Unexpected error while saving.",
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const getStatusIcon = () => {
-    if (!executionResult) return null
-    const statusId = executionResult.status.id
-    if (statusId === 3) return <CheckCircle2 className="text-green-600" size={18} />
-    if ([5, 6, 7, 8, 9, 10, 11, 12].includes(statusId)) return <XCircle className="text-red-600" size={18} />
-    return <AlertCircle className="text-yellow-600" size={18} />
-  }
+    if (!executionResult) return null;
+    const statusId = executionResult.status.id;
+    if (statusId === 3)
+      return <CheckCircle2 className="text-green-600" size={18} />;
+    if ([5, 6, 7, 8, 9, 10, 11, 12].includes(statusId))
+      return <XCircle className="text-red-600" size={18} />;
+    return <AlertCircle className="text-yellow-600" size={18} />;
+  };
 
   const getStatusColor = () => {
-    if (!executionResult) return ""
-    const statusId = executionResult.status.id
-    if (statusId === 3) return "bg-green-100 text-green-800 border-green-300"
-    if ([5, 6, 7, 8, 9, 10, 11, 12].includes(statusId)) return "bg-red-100 text-red-800 border-red-300"
-    return "bg-yellow-100 text-yellow-800 border-yellow-300"
-  }
+    if (!executionResult) return "";
+    const statusId = executionResult.status.id;
+    if (statusId === 3) return "bg-green-100 text-green-800 border-green-300";
+    if ([5, 6, 7, 8, 9, 10, 11, 12].includes(statusId))
+      return "bg-red-100 text-red-800 border-red-300";
+    return "bg-yellow-100 text-yellow-800 border-yellow-300";
+  };
 
   const compareOutputs = () => {
-    if (!executionResult || !expectedOutput.trim()) return null
-    return (executionResult.stdout || "").trim() === expectedOutput.trim()
-  }
+    if (!executionResult || !expectedOutput.trim()) return null;
+    return (executionResult.stdout || "").trim() === expectedOutput.trim();
+  };
 
-  const lineCount = code.split("\n").length
+  const lineCount = code.split("\n").length;
 
   return (
     <div className="flex h-[calc(100vh-4rem)]  overflow-hidden bg-background">
@@ -828,7 +876,9 @@ function App() {
                 </option>
               ))}
             </select>
-            <span className="text-muted-foreground text-sm">{lineCount} lines</span>
+            <span className="text-muted-foreground text-sm">
+              {lineCount} lines
+            </span>
           </div>
 
           <div className="flex gap-2">
@@ -838,7 +888,9 @@ function App() {
               title="Copy Code"
             >
               <Copy size={16} />
-              <span className="hidden sm:inline">{showCopied ? "Copied!" : "Copy"}</span>
+              <span className="hidden sm:inline">
+                {showCopied ? "Copied!" : "Copy"}
+              </span>
             </button>
             <button
               onClick={downloadCode}
@@ -865,7 +917,9 @@ function App() {
                   <div className="space-y-2">
                     <h4 className="font-medium leading-none">Save Code</h4>
                     <p className="text-sm text-muted-foreground">
-                      {user ? "Give your code a name to save it" : "Sign in to save your code"}
+                      {user
+                        ? "Give your code a name to save it"
+                        : "Sign in to save your code"}
                     </p>
                   </div>
 
@@ -880,7 +934,7 @@ function App() {
                           onChange={(e) => setCodeName(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && !isSaving) {
-                              handleSaveCode()
+                              handleSaveCode();
                             }
                           }}
                         />
@@ -889,19 +943,28 @@ function App() {
                       {saveStatus && (
                         <div
                           className={`text-sm p-2 rounded-md ${
-                            saveStatus.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                            saveStatus.type === "success"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
                           }`}
                         >
                           {saveStatus.message}
                         </div>
                       )}
 
-                      <Button onClick={handleSaveCode} disabled={isSaving} className="w-full">
+                      <Button
+                        onClick={handleSaveCode}
+                        disabled={isSaving}
+                        className="w-full"
+                      >
                         {isSaving ? "Saving..." : "Save Code"}
                       </Button>
                     </>
                   ) : (
-                    <Button onClick={() => router.push("/login")} className="w-full gap-2">
+                    <Button
+                      onClick={() => router.push("/login")}
+                      className="w-full gap-2"
+                    >
                       Sign In to Save
                     </Button>
                   )}
@@ -909,23 +972,8 @@ function App() {
               </PopoverContent>
             </Popover>
 
-            <button
-              onClick={() => setIsDark(!isDark)}
-              className="flex items-center gap-2 px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md transition border border-input"
-              title="Toggle Theme"
-            >
-              {isDark ? (
-                <>
-                  <Sun size={16} />
-                  <span className="hidden sm:inline">Light</span>
-                </>
-              ) : (
-                <>
-                  <Moon size={16} />
-                  <span className="hidden sm:inline">Dark</span>
-                </>
-              )}
-            </button>
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
             <button
               onClick={runCode}
@@ -943,7 +991,7 @@ function App() {
           <Editor
             height="100%"
             language={language === "cpp" ? "cpp" : language}
-            theme={isDark ? "vs-dark" : "light"}
+            theme={mounted && resolvedTheme === "dark" ? "vs-dark" : "light"}
             value={code}
             onChange={(value) => setCode(value || "")}
             onMount={handleEditorDidMount}
@@ -1016,15 +1064,19 @@ function App() {
               )}
 
               {/* Test Case Result */}
-              {expectedOutput.trim() && executionResult && executionResult.stdout && (
-                <div
-                  className={`px-3 py-1 rounded-md text-sm font-semibold ${
-                    compareOutputs() ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {compareOutputs() ? "✓ Test Passed" : "✗ Test Failed"}
-                </div>
-              )}
+              {expectedOutput.trim() &&
+                executionResult &&
+                executionResult.stdout && (
+                  <div
+                    className={`px-3 py-1 rounded-md text-sm font-semibold ${
+                      compareOutputs()
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {compareOutputs() ? "✓ Test Passed" : "✗ Test Failed"}
+                  </div>
+                )}
             </div>
           </div>
           <div className="flex-1 overflow-auto p-4 font-mono text-sm bg-background">
@@ -1043,15 +1095,21 @@ function App() {
                       <XCircle size={16} />
                       Compilation Error
                     </div>
-                    <pre className="whitespace-pre-wrap text-xs">{executionResult.compile_output}</pre>
+                    <pre className="whitespace-pre-wrap text-xs">
+                      {executionResult.compile_output}
+                    </pre>
                   </div>
                 )}
 
                 {/* Standard Output */}
                 {executionResult.stdout && (
                   <div className="p-3 rounded-md bg-muted/50 border border-border">
-                    <div className="font-semibold mb-2 text-foreground text-xs">Standard Output</div>
-                    <pre className="whitespace-pre-wrap text-foreground">{executionResult.stdout}</pre>
+                    <div className="font-semibold mb-2 text-foreground text-xs">
+                      Standard Output
+                    </div>
+                    <pre className="whitespace-pre-wrap text-foreground">
+                      {executionResult.stdout}
+                    </pre>
                   </div>
                 )}
 
@@ -1062,21 +1120,27 @@ function App() {
                       <AlertCircle size={16} />
                       Runtime Error
                     </div>
-                    <pre className="whitespace-pre-wrap text-xs">{executionResult.stderr}</pre>
+                    <pre className="whitespace-pre-wrap text-xs">
+                      {executionResult.stderr}
+                    </pre>
                   </div>
                 )}
 
                 {/* No Output Message */}
-                {!executionResult.stdout && !executionResult.stderr && !executionResult.compile_output && (
-                  <div className="text-muted-foreground text-center py-8">No output generated</div>
-                )}
+                {!executionResult.stdout &&
+                  !executionResult.stderr &&
+                  !executionResult.compile_output && (
+                    <div className="text-muted-foreground text-center py-8">
+                      No output generated
+                    </div>
+                  )}
               </div>
             )}
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
