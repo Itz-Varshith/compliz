@@ -307,13 +307,12 @@ export default function SolvePage({ params }) {
 
       if (data.success) {
         const submission = data.submission || {}
-        const isPassed = data.isPassed === true
         const statusDescription = submission.status?.description || submission.status?.name || "Unknown"
         let displayStatus = statusDescription
-        if (statusDescription === "Accepted" && !isPassed) {
+        if (statusDescription === "Wrong Answer") {
           displayStatus = "Test cases failed"
         }
-        const isAccepted = (statusDescription === "Accepted") && isPassed
+        const isAccepted = (statusDescription === "Accepted") 
         
         const outputMessages = [
           { type: "success", message: "Submission successful!" },
@@ -476,7 +475,7 @@ export default function SolvePage({ params }) {
                 : s.memory_text || s.memory || "N/A"
 
         let displayStatus = s.verdict || s.status || "Unknown"
-        if (displayStatus === "Accepted" && s.isPassed !== true) {
+        if (displayStatus === "Wrong Answer") {
           displayStatus = "Test cases failed"
         }
 
@@ -487,7 +486,6 @@ export default function SolvePage({ params }) {
           runtime: runtimeMs,
           memory: memoryText,
           language: s.language?.name || s.langId || s.lang || s.language || "Unknown",
-          isPassed: s.isPassed === true, 
         }
       })
 
@@ -518,8 +516,8 @@ export default function SolvePage({ params }) {
     }
   }
 
-  const getStatusColor = (status, isPassed) => {
-    if ((status === "Accepted" || status?.toLowerCase().includes("accepted")) && isPassed === true) {
+  const getStatusColor = (status ) => {
+    if ((status === "Accepted" || status?.toLowerCase().includes("accepted"))) {
         return "text-green-600 dark:text-green-400"
     }
     
@@ -538,8 +536,8 @@ export default function SolvePage({ params }) {
     }
   }
 
-  const getStatusIcon = (status, isPassed) => {
-    if ((status === "Accepted" || status?.toLowerCase().includes("accepted")) && isPassed === true) {
+  const getStatusIcon = (status) => {
+    if ((status === "Accepted" || status?.toLowerCase().includes("accepted"))) {
       return <CheckCircle2 className="h-4 w-4" />
     }
     
@@ -792,25 +790,6 @@ export default function SolvePage({ params }) {
                   </Button>
                 </div>
 
-                {submissionsMeta?.message && (
-                  <Card
-                    className={`p-3 mb-4 border ${
-                      submissionsMeta.success === false
-                        ? "border-destructive/40 bg-destructive/5"
-                        : "border-blue-600/30 dark:border-blue-400/30 bg-blue-50/40 dark:bg-blue-950/20"
-                    }`}
-                  >
-                    <div className="flex items-start gap-2">
-                      {submissionsMeta.success === false ? (
-                        <XCircle className="h-4 w-4 text-destructive mt-0.5" />
-                      ) : (
-                        <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
-                      )}
-                      <p className="text-sm text-foreground">{submissionsMeta.message}</p>
-                    </div>
-                  </Card>
-                )}
-
                 {isSubmissionsLoading ? (
                   <div className="space-y-3">
                     <Card className="p-4 border-muted animate-pulse" />
@@ -840,21 +819,35 @@ export default function SolvePage({ params }) {
                   </Card>
                 ) : (
                   <div className="space-y-3">
-                    {submissions.map((submission) => (
+                  {[...submissions]
+                  .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                  .map((submission) => {
+                    // ... the rest of your mapping logic remains the same
+                    const formattedDate = new Date(submission.timestamp).toLocaleString("en-IN", {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    });
+
+
+                    return (
                       <Card
                         key={submission.id}
                         className="p-4 hover:bg-muted/50 transition-colors cursor-pointer border-muted"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className={getStatusColor(submission.status, submission.isPassed)}>
-                              {getStatusIcon(submission.status, submission.isPassed)}
+                            <div className={getStatusColor(submission.status)}>
+                              {getStatusIcon(submission.status)}
                             </div>
                             <div>
-                              <p className={`font-semibold ${getStatusColor(submission.status, submission.isPassed)}`}>
+                              <p className={`font-semibold ${getStatusColor(submission.status)}`}>
                                 {submission.status}
-                              </p>  
-                              <p className="text-sm text-muted-foreground">{submission.timestamp}</p>
+                              </p>
+                              <p className="text-sm text-muted-foreground">{formattedDate}</p>
                             </div>
                           </div>
                           <div className="text-right text-sm">
@@ -867,7 +860,8 @@ export default function SolvePage({ params }) {
                           </div>
                         </div>
                       </Card>
-                    ))}
+                      );
+                  })}
                   </div>
                 )}
               </TabsContent>
