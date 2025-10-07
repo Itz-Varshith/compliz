@@ -76,8 +76,57 @@ export default function SolvePage({ params }) {
   const [submissionsError, setSubmissionsError] = useState(null)
   const [submissionsMeta, setSubmissionsMeta] = useState(null)
   const [showSubmissionSuccess, setShowSubmissionSuccess] = useState(false)
+  
+  // Resizable panel states
+  const [leftPanelWidth, setLeftPanelWidth] = useState(50)
+  const [consoleHeight, setConsoleHeight] = useState(35)
+  const [isDraggingVertical, setIsDraggingVertical] = useState(false)
+  const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false)
+  
   const supabase = createClient()
   const { toast } = useToast()
+
+  // Resize handlers
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isDraggingVertical) {
+        const container = document.getElementById('main-container')
+        if (container) {
+          const rect = container.getBoundingClientRect()
+          const newWidth = ((e.clientX - rect.left) / rect.width) * 100
+          setLeftPanelWidth(Math.min(Math.max(newWidth, 25), 75))
+        }
+      }
+      
+      if (isDraggingHorizontal) {
+        const rightPanel = document.getElementById('right-panel')
+        if (rightPanel) {
+          const rect = rightPanel.getBoundingClientRect()
+          const newHeight = ((rect.bottom - e.clientY) / rect.height) * 100
+          setConsoleHeight(Math.min(Math.max(newHeight, 20), 60))
+        }
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsDraggingVertical(false)
+      setIsDraggingHorizontal(false)
+    }
+
+    if (isDraggingVertical || isDraggingHorizontal) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = isDraggingVertical ? 'col-resize' : 'row-resize'
+      document.body.style.userSelect = 'none'
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = 'default'
+      document.body.style.userSelect = 'auto'
+    }
+  }, [isDraggingVertical, isDraggingHorizontal])
 
   useEffect(() => {
     const getToken = async () => {
@@ -219,8 +268,6 @@ export default function SolvePage({ params }) {
   }
 
   const submitCode = async () => {
-    // Check if user is authenticated
-    
     if (!isAuthenticated || !token) {
       toast({
         title: "Authentication Required",
@@ -230,7 +277,6 @@ export default function SolvePage({ params }) {
       return
     }
 
-    // Check if code is empty
     if (!code || code.trim() === "") {
       toast({
         title: "Empty Code",
@@ -260,7 +306,6 @@ export default function SolvePage({ params }) {
 
       const data = await response.json()
 
-      // Handle successful submission
       if (data.success) {
         const submission = data.submission || {}
         const isPassed = data.isPassed === true
@@ -285,7 +330,6 @@ export default function SolvePage({ params }) {
           { type: "info", message: `Status: ${statusDescription}` },
         ]
 
-        // Add test results if available
         if (submission.stdout) {
           logMessages.push({
             type: "output",
@@ -293,7 +337,6 @@ export default function SolvePage({ params }) {
           })
         }
 
-        // Add stderr if available
         if (submission.stderr) {
           logMessages.push({
             type: "error",
@@ -301,7 +344,6 @@ export default function SolvePage({ params }) {
           })
         }
 
-        // Add performance metrics
         if (submission.time) {
           outputMessages.push({
             type: "metric",
@@ -326,7 +368,6 @@ export default function SolvePage({ params }) {
           })
         }
 
-        // Add wall time if available
         if (submission.wall_time) {
           outputMessages.push({
             type: "metric",
@@ -339,7 +380,6 @@ export default function SolvePage({ params }) {
           })
         }
 
-        // Add execution details to log only
         if (submission.compile_output) {
           logMessages.push({
             type: "log",
@@ -347,7 +387,6 @@ export default function SolvePage({ params }) {
           })
         }
 
-        // Add language info to log only
         if (submission.language?.name) {
           logMessages.push({
             type: "info",
@@ -366,7 +405,6 @@ export default function SolvePage({ params }) {
           description: data.message || "Your solution has been submitted successfully.",
         })
 
-        // Optionally refresh submissions list
         fetchSubmissions()
       } else {
         throw new Error(data.message || "Submission failed")
@@ -482,7 +520,6 @@ export default function SolvePage({ params }) {
   }
 
   const getStatusColor = (status, isPassed) => {
-    // Only show green for Accepted if isPassed is true
     if ((status === "Accepted" || status?.toLowerCase().includes("accepted")) && isPassed === true) {
         return "text-green-600 dark:text-green-400"
     }
@@ -503,7 +540,6 @@ export default function SolvePage({ params }) {
   }
 
   const getStatusIcon = (status, isPassed) => {
-    // Only show check icon for Accepted if isPassed is true
     if ((status === "Accepted" || status?.toLowerCase().includes("accepted")) && isPassed === true) {
       return <CheckCircle2 className="h-4 w-4" />
     }
@@ -565,9 +601,15 @@ export default function SolvePage({ params }) {
       : "0.0"
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-background overflow-hidden">
+    <div 
+      id="main-container" 
+      className="flex h-[calc(100vh-4rem)] bg-background overflow-hidden relative"
+    >
       {/* Left Panel - Problem Description */}
-      <div className="w-1/2 border-r border-border flex flex-col">
+      <div 
+        className="border-r border-border flex flex-col overflow-hidden"
+        style={{ width: `${leftPanelWidth}%` }}
+      >
         <div className="flex-1 overflow-auto">
           <div className="p-6">
             {/* Problem Header */}
@@ -576,13 +618,11 @@ export default function SolvePage({ params }) {
                 <h1 className="text-2xl font-bold text-foreground text-balance">
                   {question.title || "Untitled Problem"}
                 </h1>
-                {/* Difficulty Chip */}
                 {question.difficulty && (
                   <div
                     className={`px-2.5 py-1 rounded-md text-xs font-medium border ${getDifficultyColor(
                       question.difficulty,
                     )}`}
-                    aria-label="Problem difficulty"
                   >
                     {question.difficulty}
                   </div>
@@ -599,7 +639,6 @@ export default function SolvePage({ params }) {
                   ))}
               </div>
             </div>
-            {/* End: Problem Header */}
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -631,14 +670,12 @@ export default function SolvePage({ params }) {
               </TabsList>
 
               <TabsContent value="description" className="mt-6 space-y-6">
-                {/* Description */}
                 <div>
                   <p className="text-foreground leading-relaxed whitespace-pre-line text-pretty">
                     {question.description || "No description available"}
                   </p>
                 </div>
 
-                {/* Examples */}
                 {question.examples && (question.examples.input || question.examples.output) && (
                   <div className="space-y-4">
                     <Card className="p-4 bg-muted/50 border-muted">
@@ -663,7 +700,6 @@ export default function SolvePage({ params }) {
                   </div>
                 )}
 
-                {/* Constraints */}
                 {question.constraints && question.constraints.length > 0 && (
                   <div>
                     <h3 className="font-semibold mb-3 text-foreground">Constraints:</h3>
@@ -677,7 +713,6 @@ export default function SolvePage({ params }) {
                   </div>
                 )}
 
-                {/* Time and Memory Limits */}
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
                   <div className="bg-muted/30 p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground mb-1">Time Limit</p>
@@ -689,7 +724,6 @@ export default function SolvePage({ params }) {
                   </div>
                 </div>
 
-                {/* Stats */}
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
                   <div className="bg-muted/30 p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground mb-1">Accepted</p>
@@ -751,7 +785,7 @@ export default function SolvePage({ params }) {
                     variant="outline"
                     onClick={fetchSubmissions}
                     disabled={isSubmissionsLoading}
-                    className="gap-2 bg-transparent"
+                    className="gap-2bg-transparent"
                     title="Refresh submissions"
                   >
                     <RotateCcw className={`h-4 w-4 ${isSubmissionsLoading ? "animate-spin" : ""}`} />
@@ -895,8 +929,21 @@ export default function SolvePage({ params }) {
         </div>
       </div>
 
+      {/* Vertical Resize Handle */}
+      <div
+        className="w-1 bg-border hover:bg-primary hover:w-1.5 cursor-col-resize transition-all duration-150 relative group flex-shrink-0"
+        onMouseDown={() => setIsDraggingVertical(true)}
+      >
+        <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-primary/10" />
+      </div>
+
       {/* Right Panel - Code Editor */}
-      <div className="w-1/2 flex flex-col bg-background">
+      <div 
+        id="right-panel"
+        className="flex flex-col bg-background overflow-hidden"
+        style={{ width: `${100 - leftPanelWidth}%` }}
+      >
+        {/* Top Bar */}
         <div className="bg-muted/30 px-4 py-3 flex items-center justify-between border-b border-border shrink-0">
           <div className="flex items-center gap-4">
             <select
@@ -939,7 +986,6 @@ export default function SolvePage({ params }) {
           </div>
 
           <div className="flex gap-2 relative">
-            {/* Run button for quick feedback before submit */}
             <Button
               onClick={runCode}
               variant="secondary"
@@ -986,7 +1032,10 @@ export default function SolvePage({ params }) {
         </div>
 
         {/* Monaco Editor */}
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div 
+          className="overflow-hidden relative"
+          style={{ height: `${100 - consoleHeight}%` }}
+        >
           <Editor
             height="100%"
             language={language}
@@ -1005,7 +1054,19 @@ export default function SolvePage({ params }) {
           />
         </div>
 
-        <div className="h-72 border-t border-border flex flex-col bg-background shrink-0">
+        {/* Horizontal Resize Handle */}
+        <div
+          className="h-1 bg-border hover:bg-primary hover:h-1.5 cursor-row-resize transition-all duration-150 relative group flex-shrink-0"
+          onMouseDown={() => setIsDraggingHorizontal(true)}
+        >
+          <div className="absolute inset-x-0 -top-1 -bottom-1 group-hover:bg-primary/10" />
+        </div>
+
+        {/* Console/Output Section */}
+        <div 
+          className="border-t border-border flex flex-col bg-background shrink-0 overflow-hidden"
+          style={{ height: `${consoleHeight}%` }}
+        >
           <Tabs defaultValue="result" className="flex-1 flex flex-col min-h-0">
             <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-muted/30 px-4 shrink-0">
               <TabsTrigger
@@ -1025,7 +1086,13 @@ export default function SolvePage({ params }) {
             </TabsList>
 
             <TabsContent value="result" className="flex-1 p-4 overflow-auto min-h-0">
-              {!output || output.length === 0 ? (
+              {isSubmitting ? (
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                  <Loader2 size={48} className="mb-3 opacity-50 animate-spin" />
+                  <p className="text-sm font-medium">Evaluating your submission...</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Please wait</p>
+                </div>
+              ) : !output || output.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                   <Terminal size={48} className="mb-3 opacity-30" />
                   <p className="text-sm font-medium">No results yet</p>
@@ -1078,9 +1145,7 @@ export default function SolvePage({ params }) {
                             <style.icon className="h-5 w-5" />
                           </div>
                           <div>
-                            <p
-                              className={`text-lg font-bold ${style.text}`}
-                            >
+                            <p className={`text-lg font-bold ${style.text}`}>
                               {parsed.statusText}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -1169,6 +1234,17 @@ export default function SolvePage({ params }) {
             </TabsContent>
           </Tabs>
         </div>
+      </div>
+
+      {/* Mobile Responsive Overlay */}
+      <div className="lg:hidden absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+        <Card className="p-6 max-w-md text-center">
+          <Terminal className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-semibold mb-2">Desktop Required</h3>
+          <p className="text-muted-foreground text-sm">
+            This code editor works best on larger screens. Please use a desktop or tablet device for the optimal experience.
+          </p>
+        </Card>
       </div>
     </div>
   )

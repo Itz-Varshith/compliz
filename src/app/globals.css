@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* :root {
+:root {
   --background: oklch(0.97 0.01 60);
   --foreground: oklch(0.25 0.02 40);
   --card: oklch(0.99 0.005 60);
@@ -37,7 +37,7 @@
   --sidebar-accent-foreground: oklch(0.25 0.02 40);
   --sidebar-border: oklch(0.88 0.01 50);
   --sidebar-ring: oklch(0.62 0.19 45);
-} */
+}
 
 :root {
   --background: oklch(0.97 0.01 60);
@@ -123,4 +123,7 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+.preserve-whitespace {
+  white-space: pre-wrap;
 }
