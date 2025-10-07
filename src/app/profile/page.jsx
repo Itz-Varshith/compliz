@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -27,7 +26,7 @@ import {
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { copyToClipboard } from "@/components/copyToClipboard" // Import copyToClipboard function
+import { copyToClipboard } from "@/components/copyToClipboard"
 import {
   LineChart,
   Line,
@@ -43,29 +42,6 @@ import {
   ResponsiveContainer,
 } from "recharts"
 
-// Dummy data
-const dummyUser = {
-  name: "Harshith",
-  email: "harshith@compliz.dev",
-  initial: "H",
-}
-
-const statsData = [
-  { label: "Total Submissions", value: 127, icon: Code2, color: "text-blue-600" },
-  { label: "Accepted Questions", value: 89, icon: CheckCircle2, color: "text-green-600" },
-  { label: "Acceptance Rate", value: "70%", icon: Target, color: "text-orange-600" },
-]
-
-const dailyProgress = [
-  { date: "Sep 20", solved: 3 },
-  { date: "Sep 21", solved: 5 },
-  { date: "Sep 22", solved: 2 },
-  { date: "Sep 23", solved: 4 },
-  { date: "Sep 24", solved: 6 },
-  { date: "Sep 25", solved: 3 },
-  { date: "Sep 26", solved: 7 },
-]
-
 const topicProgress = [
   { topic: "Arrays", solved: 25, fill: "hsl(var(--chart-1))" },
   { topic: "DP", solved: 12, fill: "hsl(var(--chart-2))" },
@@ -73,6 +49,67 @@ const topicProgress = [
   { topic: "Strings", solved: 15, fill: "hsl(var(--chart-4))" },
   { topic: "Trees", solved: 19, fill: "hsl(var(--chart-5))" },
 ]
+
+// Helper function to format date
+const formatDate = (timestamp) => {
+  if (!timestamp) return "N/A"
+  const date = new Date(timestamp)
+  if (isNaN(date.getTime())) return "N/A"
+  
+  const day = String(date.getDate()).padStart(2, '0')
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                  'July', 'August', 'September', 'October', 'November', 'December']
+  const month = months[date.getMonth()]
+  const year = date.getFullYear()
+  
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  
+  return `${day} ${month} ${year}, ${hours}:${minutes}`
+}
+
+// Helper function to calculate stats
+const calculateStats = (submissions) => {
+  const total = submissions.length
+  const accepted = submissions.filter(s => 
+    s.verdict === "Accepted" || s.verdict === "AC" || s.verdict === "ACCEPTED"
+  ).length
+  const rate = total > 0 ? Math.round((accepted / total) * 100) : 0
+  
+  return { total, accepted, rate }
+}
+
+// Helper function to get last 7 days progress - ONLY ACCEPTED SOLUTIONS
+const getLast7DaysProgress = (submissions) => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  const last7Days = []
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today)
+    date.setDate(date.getDate() - i)
+    last7Days.push({
+      date: date,
+      dateStr: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      solved: 0
+    })
+  }
+  
+  submissions.forEach(sub => {
+    const subDate = new Date(sub.timestamp)
+    if (isNaN(subDate.getTime())) return
+    
+    subDate.setHours(0, 0, 0, 0)
+    
+    const dayData = last7Days.find(d => d.date.getTime() === subDate.getTime())
+    // Only count accepted solutions
+    if (dayData && (sub.verdict === "Accepted" || sub.verdict === "AC" || sub.verdict === "ACCEPTED")) {
+      dayData.solved++
+    }
+  })
+  
+  return last7Days.map(d => ({ date: d.dateStr, solved: d.solved }))
+}
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null)
@@ -131,7 +168,6 @@ export default function ProfilePage() {
     code: c?.code ?? c?.content ?? "",
   })
 
-  // only fetch when we know if there is a user (logged-in flow)
   const {
     data: submissionsRaw,
     error: submissionsError,
@@ -148,18 +184,17 @@ export default function ProfilePage() {
   })
   
   const submissionsList = (() => {
+    let list = []
     if (Array.isArray(submissionsRaw)) {
-      // Fallback if API ever returns a bare array
-      return submissionsRaw.map(toSubmission)
-    }
-    if (submissionsRaw && Array.isArray(submissionsRaw.submissions)) {
+      list = submissionsRaw.map(toSubmission)
+    } else if (submissionsRaw && Array.isArray(submissionsRaw.submissions)) {
       const subs = submissionsRaw.submissions
       const questions = Array.isArray(submissionsRaw.questions) ? submissionsRaw.questions : []
       const qMap = new Map()
       for (const q of questions) {
         if (q && q._id) qMap.set(q._id, q)
       }
-      return subs.map((s, idx) => {
+      list = subs.map((s, idx) => {
         const qId = s?.questionID?.questionUUID
         const qTitle = (qId && qMap.get(qId)?.title) || "Unknown Question"
         return {
@@ -175,7 +210,16 @@ export default function ProfilePage() {
         }
       })
     }
-    return []
+    
+    list.sort((a, b) => {
+      const dateA = new Date(a.timestamp)
+      const dateB = new Date(b.timestamp)
+      if (isNaN(dateA.getTime())) return 1
+      if (isNaN(dateB.getTime())) return -1
+      return dateB - dateA
+    })
+    
+    return list
   })()
 
   const savedCodesList = (() => {
@@ -190,7 +234,17 @@ export default function ProfilePage() {
         : Array.isArray(raw?.data)
           ? raw.data
           : []
-    return arr.map(toCodeSnippet)
+    const list = arr.map(toCodeSnippet)
+    
+    list.sort((a, b) => {
+      const dateA = new Date(a.lastModified)
+      const dateB = new Date(b.lastModified)
+      if (isNaN(dateA.getTime())) return 1
+      if (isNaN(dateB.getTime())) return -1
+      return dateB - dateA
+    })
+    
+    return list
   })()
 
   const { data, error } = useSWR("user", fetchUser)
@@ -213,9 +267,19 @@ export default function ProfilePage() {
     getSession()
   }, [supabase])
 
-  const userName = user?.user_metadata?.full_name || user?.email || dummyUser.name
-  const userEmail = user?.email || dummyUser.email
-  const userInitial = userName?.charAt(0).toUpperCase() || dummyUser.initial
+  // Get user name from auth metadata, fallback to email or "User"
+  const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || "User"
+  const userEmail = user?.email || "user@example.com"
+  const userInitial = userName?.charAt(0).toUpperCase() || "U"
+
+  const stats = calculateStats(submissionsList)
+  const dailyProgress = getLast7DaysProgress(submissionsList)
+  
+  const statsData = [
+    { label: "Total Submissions", value: stats.total, icon: Code2, color: "text-blue-600" },
+    { label: "Accepted Questions", value: stats.accepted, icon: CheckCircle2, color: "text-green-600" },
+    { label: "Acceptance Rate", value: `${stats.rate}%`, icon: Target, color: "text-orange-600" },
+  ]
 
   const filteredSubmissions = submissionsList.filter(
     (sub) =>
@@ -230,10 +294,7 @@ export default function ProfilePage() {
 
   return (
     <div className="h-[calc(100vh-4rem)] bg-gradient-to-br from-background via-background to-muted/20">
-      
-
       <div className="flex h-[calc(100vh-4rem)]">
-        {/* Left Sidebar */}
         <aside className="w-64 border-r border-border bg-muted/20 backdrop-blur-md flex flex-col">
           <nav className="flex-1 p-4 space-y-2">
             <Button
@@ -278,7 +339,6 @@ export default function ProfilePage() {
             </Button>
           </nav>
 
-          {/* User Info at Bottom */}
           <div className="p-4 border-t border-border space-y-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12 border-2 border-primary/50">
@@ -307,18 +367,16 @@ export default function ProfilePage() {
           </div>
         </aside>
 
-        {/* Main Content Area */}
         <main className="flex-1 overflow-auto">
           <div className="container mx-auto p-6 max-w-7xl">
             <Tabs value={activeNav} onValueChange={setActiveNav} className="space-y-6">
-              {/* Overview Tab */}
               <TabsContent value="overview" className="space-y-6">
                 <div>
                   <h1 className="text-4xl font-bold text-balance mb-2">Welcome back, {userName.split(" ")[0]} 👋</h1>
                   <p className="text-muted-foreground">Here's your coding journey at a glance</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {statsData.map((stat, index) => (
                     <Card key={index} className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
                       <CardContent className="pt-6">
@@ -338,7 +396,7 @@ export default function ProfilePage() {
                       <TrendingUp className="h-5 w-5 text-primary" />
                       Recent Activity
                     </CardTitle>
-                    <CardDescription>Your last 7 days of problem solving</CardDescription>
+                    <CardDescription>Your last 7 days of accepted solutions</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="text-primary">
@@ -362,7 +420,6 @@ export default function ProfilePage() {
                 </Card>
               </TabsContent>
 
-              {/* Practice History Tab */}
               <TabsContent value="history" className="space-y-6">
                 <div>
                   <h2 className="text-3xl font-bold mb-2">Practice History</h2>
@@ -407,10 +464,10 @@ export default function ProfilePage() {
                               <div className="flex items-center gap-3 mb-2">
                                 <CardTitle className="text-lg">{submission.title}</CardTitle>
                                 <Badge
-                                  variant={submission.verdict === "Accepted" ? "default" : "destructive"}
+                                  variant={submission.verdict === "Accepted" || submission.verdict === "AC" || submission.verdict === "ACCEPTED" ? "default" : "destructive"}
                                   className="gap-1"
                                 >
-                                  {submission.verdict === "Accepted" ? (
+                                  {submission.verdict === "Accepted" || submission.verdict === "AC" || submission.verdict === "ACCEPTED" ? (
                                     <CheckCircle2 className="h-3 w-3" />
                                   ) : (
                                     <XCircle className="h-3 w-3" />
@@ -421,7 +478,7 @@ export default function ProfilePage() {
                               <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
-                                  {submission.timestamp}
+                                  {formatDate(submission.timestamp)}
                                 </span>
                                 <span>•</span>
                                 <span>{submission.language}</span>
@@ -480,7 +537,6 @@ export default function ProfilePage() {
                 </div>
               </TabsContent>
 
-              {/* Progress Tab */}
               <TabsContent value="progress" className="space-y-6">
                 <div>
                   <h2 className="text-3xl font-bold mb-2">Progress Analytics</h2>
@@ -490,7 +546,7 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <Card className="border-border/50 shadow-lg">
                     <CardHeader>
-                      <CardTitle>Questions Solved per Day</CardTitle>
+                      <CardTitle>Accepted Solutions per Day</CardTitle>
                       <CardDescription>Last 7 days activity</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -578,7 +634,6 @@ export default function ProfilePage() {
                 </Card>
               </TabsContent>
 
-              {/* Saved Codes Tab */}
               <TabsContent value="saved" className="space-y-6">
                 <div>
                   <h2 className="text-3xl font-bold mb-2">Saved Code Snippets</h2>
@@ -608,7 +663,7 @@ export default function ProfilePage() {
                                 <CardTitle className="text-lg">{codeSnippet.title}</CardTitle>
                                 <Badge variant="secondary">{codeSnippet.language}</Badge>
                               </div>
-                              <p className="text-sm text-muted-foreground">Last modified: {codeSnippet.lastModified}</p>
+                              <p className="text-sm text-muted-foreground">Last modified: {formatDate(codeSnippet.lastModified)}</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button
