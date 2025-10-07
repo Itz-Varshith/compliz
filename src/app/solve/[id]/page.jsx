@@ -178,7 +178,6 @@ export default function SolvePage({ params }) {
         }
 
         const data = await response.json()
-
         if (data.success && data.questionData) {
           const questionData = {
             ...data.questionData,
@@ -681,13 +680,13 @@ export default function SolvePage({ params }) {
                     <Card className="p-4 bg-muted/50 border-muted">
                       <p className="font-semibold mb-3 text-foreground">Example:</p>
                       <div className="space-y-2 font-mono text-sm">
-                        <div className="bg-background/50 p-3 rounded-md">
-                          <span className="font-semibold text-muted-foreground">Input:</span>{" "}
-                          <span className="text-foreground">{question.examples.input || "N/A"}</span>
+                        <div className="bg-background/50 p-3 rounded-md flex flex-col gap-1">
+                          <span className="font-semibold text-muted-foreground">Input:</span>
+                          <span className="text-foreground whitespace-pre-line">{question.examples.input || "N/A"}</span>
                         </div>
-                        <div className="bg-background/50 p-3 rounded-md">
-                          <span className="font-semibold text-muted-foreground">Output:</span>{" "}
-                          <span className="text-foreground">{question.examples.output || "N/A"}</span>
+                        <div className="bg-background/50 p-3 rounded-md flex flex-col gap-1">
+                          <span className="font-semibold text-muted-foreground">Output:</span>
+                          <span className="text-foreground whitespace-pre-line">{question.examples.output || "N/A"}</span>
                         </div>
                         {question.examples.explanation && question.examples.explanation !== "--" && (
                           <div className="bg-background/50 p-3 rounded-md">
