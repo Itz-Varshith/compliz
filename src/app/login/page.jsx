@@ -120,7 +120,7 @@ export default function LoginPage() {
         {/* Right Side - Login Form */}
         <div className="w-full">
           {/* Mobile Logo */}
-          <div className="text-center mb-20">
+          <div className="text-center mb-20 lg:hidden">
             <h1 className="text-7xl font-bold tracking-widest mb-4">
               <span className="text-orange-500">&gt;_</span>
               <span className="text-gray-900 ml-2">compliz</span>
@@ -204,17 +204,6 @@ export default function LoginPage() {
                 Privacy Policy
               </span>
             </p>
-          </div>
-
-          <div className="text-center mt-6 space-y-2">
-            <p className="text-sm text-slate-600">
-              New to compliz?{" "}
-              <span className="text-primary font-semibold">Create your account instantly</span>
-            </p>
-            <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
-              <span>✓ No credit card required</span>
-              <span>✓ Free forever</span>
-            </div>
           </div>
         </div>
       </div>
