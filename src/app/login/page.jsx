@@ -41,17 +41,23 @@ export default function LoginPage() {
       <div className="max-w-6xl w-full mx-4 grid lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Branding & Features */}
         <div className="hidden lg:block space-y-8">
-          <div>
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-orange-500 rounded-2xl mb-6 shadow-lg shadow-primary/20">
-              <Code2 className="h-8 w-8 text-white" />
-            </div>
-            <h1 className="text-6xl font-black mb-4 leading-tight">
-              <span className="bg-gradient-to-r from-primary via-orange-500 to-primary bg-clip-text text-transparent">
-                compliz
-              </span>
+          <div className="text-center mb-20">
+            <h1 className="text-7xl font-bold tracking-widest mb-4">
+              <span className="text-orange-500">&gt;_</span>
+              <span className="text-gray-900 ml-2">compliz</span>
             </h1>
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+              <div className="w-16 h-0.5 bg-gradient-to-r from-orange-500 to-transparent" />
+              <span className="text-orange-500/70 text-sm tracking-wider">
+                ONLINE CODING PLATFORM
+              </span>
+              <div className="w-16 h-0.5 bg-gradient-to-l from-orange-500 to-transparent" />
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+            </div>
             <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-              The ultimate platform for developers to master coding, compete with peers, and build amazing projects.
+              The ultimate platform for developers to master coding, compete with
+              peers, and build amazing projects.
             </p>
           </div>
 
@@ -61,8 +67,12 @@ export default function LoginPage() {
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1 text-slate-900">500+ Challenges</h3>
-                <p className="text-slate-600 text-sm">From beginner to expert level problems</p>
+                <h3 className="font-semibold text-lg mb-1 text-slate-900">
+                  500+ Challenges
+                </h3>
+                <p className="text-slate-600 text-sm">
+                  From beginner to expert level problems
+                </p>
               </div>
             </div>
 
@@ -71,8 +81,12 @@ export default function LoginPage() {
                 <Zap className="h-6 w-6 text-orange-500" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1 text-slate-900">Live Compiler</h3>
-                <p className="text-slate-600 text-sm">Run code in 10+ languages instantly</p>
+                <h3 className="font-semibold text-lg mb-1 text-slate-900">
+                  Live Compiler
+                </h3>
+                <p className="text-slate-600 text-sm">
+                  Run code in 10+ languages instantly
+                </p>
               </div>
             </div>
 
@@ -81,8 +95,12 @@ export default function LoginPage() {
                 <Users className="h-6 w-6 text-purple-500" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-1 text-slate-900">Global Community</h3>
-                <p className="text-slate-600 text-sm">Connect with thousands of developers</p>
+                <h3 className="font-semibold text-lg mb-1 text-slate-900">
+                  Global Community
+                </h3>
+                <p className="text-slate-600 text-sm">
+                  Connect with thousands of developers
+                </p>
               </div>
             </div>
           </div>
@@ -102,16 +120,20 @@ export default function LoginPage() {
         {/* Right Side - Login Form */}
         <div className="w-full">
           {/* Mobile Logo */}
-          <div className="lg:hidden text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-orange-500 rounded-2xl mb-4 shadow-lg shadow-primary/20">
-              <Code2 className="h-8 w-8 text-white" />
-            </div>
-            <h1 className="text-5xl font-black mb-2">
-              <span className="bg-gradient-to-r from-primary via-orange-500 to-primary bg-clip-text text-transparent">
-                compliz
-              </span>
+          <div className="text-center mb-20">
+            <h1 className="text-7xl font-bold tracking-widest mb-4">
+              <span className="text-orange-500">&gt;_</span>
+              <span className="text-gray-900 ml-2">compliz</span>
             </h1>
-            <p className="text-slate-600 text-sm">Your coding journey starts here</p>
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+              <div className="w-16 h-0.5 bg-gradient-to-r from-orange-500 to-transparent" />
+              <span className="text-orange-500/70 text-sm tracking-wider">
+                ONLINE CODING PLATFORM
+              </span>
+              <div className="w-16 h-0.5 bg-gradient-to-l from-orange-500 to-transparent" />
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+            </div>
           </div>
 
           <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-3xl shadow-xl p-8 lg:p-10 space-y-6">
