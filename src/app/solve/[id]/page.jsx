@@ -18,6 +18,8 @@ import {
   Loader2,
   Code2,
   RotateCcw,
+  MessageSquare,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,6 +33,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AIChat } from "@/components/ai-chat";
 
 const languageTemplates = {
   cpp: `// Write your code here`,
@@ -91,6 +94,10 @@ export default function SolvePage({ params }) {
   const [consoleHeight, setConsoleHeight] = useState(35);
   const [isDraggingVertical, setIsDraggingVertical] = useState(false);
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
+
+  // AI Chat states
+  const [showAIChat, setShowAIChat] = useState(false);
+  const [aiChatWidth, setAiChatWidth] = useState(30);
 
   const supabase = createClient();
   const { toast } = useToast();
@@ -1067,350 +1074,429 @@ export default function SolvePage({ params }) {
       {/* Right Panel - Code Editor */}
       <div
         id="right-panel"
-        className="flex flex-col bg-background overflow-hidden"
+        className="flex bg-background overflow-hidden"
         style={{ width: `${100 - leftPanelWidth}%` }}
       >
-        {/* Top Bar */}
-        <div className="bg-muted/30 px-4 py-3 flex items-center justify-between border-b border-border shrink-0">
-          <div className="flex items-center gap-4">
-            <select
-              value={language}
-              onChange={(e) => handleLanguageChange(e.target.value)}
-              className="bg-background text-foreground px-4 py-2 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
-            >
-              {languageOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+        {/* Code Editor Section */}
+        <div
+          className="flex flex-col overflow-hidden"
+          style={{ width: showAIChat ? `${100 - aiChatWidth}%` : "100%" }}
+        >
+          {/* Top Bar */}
+          <div className="bg-muted/30 px-4 py-3 flex items-center justify-between border-b border-border shrink-0">
+            <div className="flex items-center gap-4">
+              <select
+                value={language}
+                onChange={(e) => handleLanguageChange(e.target.value)}
+                className="bg-background text-foreground px-4 py-2 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
+              >
+                {languageOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
 
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-md border border-border">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="font-mono text-sm font-medium text-foreground">
-                {formatTime(time)}
-              </span>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-md border border-border">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="font-mono text-sm font-medium text-foreground">
+                  {formatTime(time)}
+                </span>
+                <Button
+                  onClick={() => setIsTimerRunning(!isTimerRunning)}
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 ml-1"
+                  title={isTimerRunning ? "Pause timer" : "Start timer"}
+                >
+                  {isTimerRunning ? <Pause size={14} /> : <Play size={14} />}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setTime(0);
+                    setIsTimerRunning(false);
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  title="Reset timer"
+                >
+                  <RotateCcw size={14} />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex gap-2 relative">
               <Button
-                onClick={() => setIsTimerRunning(!isTimerRunning)}
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 ml-1"
-                title={isTimerRunning ? "Pause timer" : "Start timer"}
+                onClick={runCode}
+                variant="secondary"
+                size="sm"
+                className="gap-2"
+                title="Run locally against sample tests"
               >
-                {isTimerRunning ? <Pause size={14} /> : <Play size={14} />}
+                <Play size={16} />
+                <span className="hidden sm:inline">Run</span>
               </Button>
+
               <Button
-                onClick={() => {
-                  setTime(0);
-                  setIsTimerRunning(false);
-                }}
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                title="Reset timer"
+                onClick={copyCode}
+                variant="outline"
+                size="sm"
+                className="gap-2 bg-transparent"
               >
-                <RotateCcw size={14} />
+                <Copy size={16} />
+                <span className="hidden sm:inline">Copy</span>
               </Button>
+
+              {/* AI Chat Toggle */}
+              <Button
+                onClick={() => setShowAIChat(!showAIChat)}
+                variant={showAIChat ? "default" : "outline"}
+                size="sm"
+                className="gap-2 bg-transparent"
+                title="Toggle AI Assistant"
+              >
+                <Sparkles
+                  size={16}
+                  className={showAIChat ? "text-yellow-400" : ""}
+                />
+                <span className="hidden sm:inline">AI</span>
+              </Button>
+
+              {/* Theme Toggle */}
+              <ThemeToggle />
+
+              <Button
+                onClick={submitCode}
+                disabled={isSubmitting || !isAuthenticated}
+                size="sm"
+                className="gap-2 bg-green-600 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                title={
+                  !isAuthenticated
+                    ? "Please log in to submit"
+                    : "Submit your solution"
+                }
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit"
+                )}
+              </Button>
+
+              {showSubmissionSuccess && (
+                <div className="absolute -bottom-12 right-0 bg-green-600 text-white px-4 py-2 rounded-md shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2 z-50">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span className="text-sm font-medium">
+                    Submission Successful!
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex gap-2 relative">
-            <Button
-              onClick={runCode}
-              variant="secondary"
-              size="sm"
-              className="gap-2"
-              title="Run locally against sample tests"
+          {/* Monaco Editor */}
+          <div
+            className="overflow-hidden relative"
+            style={{ height: `${100 - consoleHeight}%` }}
+          >
+            <Editor
+              height="100%"
+              language={language}
+              theme={mounted && resolvedTheme === "dark" ? "vs-dark" : "light"}
+              value={code}
+              onChange={(value) => setCode(value || "")}
+              onMount={handleEditorDidMount}
+              options={{
+                fontSize: 14,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                lineNumbers: "on",
+                roundedSelection: false,
+                padding: { top: 16, bottom: 16 },
+              }}
+            />
+          </div>
+
+          {/* Horizontal Resize Handle */}
+          <div
+            className="h-1 bg-border hover:bg-primary hover:h-1.5 cursor-row-resize transition-all duration-150 relative group flex-shrink-0"
+            onMouseDown={() => setIsDraggingHorizontal(true)}
+          >
+            <div className="absolute inset-x-0 -top-1 -bottom-1 group-hover:bg-primary/10" />
+          </div>
+
+          {/* Console/Output Section */}
+          <div
+            className="border-t border-border flex flex-col bg-background shrink-0 overflow-hidden"
+            style={{ height: `${consoleHeight}%` }}
+          >
+            <Tabs
+              defaultValue="result"
+              className="flex-1 flex flex-col min-h-0"
             >
-              <Play size={16} />
-              <span className="hidden sm:inline">Run</span>
-            </Button>
+              <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-muted/30 px-4 shrink-0">
+                <TabsTrigger
+                  value="result"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Result
+                </TabsTrigger>
+                <TabsTrigger
+                  value="log"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                >
+                  <Terminal className="h-4 w-4 mr-2" />
+                  Execution Log
+                </TabsTrigger>
+              </TabsList>
 
-            <Button
-              onClick={copyCode}
-              variant="outline"
-              size="sm"
-              className="gap-2 bg-transparent"
-            >
-              <Copy size={16} />
-              <span className="hidden sm:inline">Copy</span>
-            </Button>
+              <TabsContent
+                value="result"
+                className="flex-1 p-4 overflow-auto min-h-0"
+              >
+                {isSubmitting ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <Loader2
+                      size={48}
+                      className="mb-3 opacity-50 animate-spin"
+                    />
+                    <p className="text-sm font-medium">
+                      Evaluating your submission...
+                    </p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">
+                      Please wait
+                    </p>
+                  </div>
+                ) : !output || output.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <Terminal size={48} className="mb-3 opacity-30" />
+                    <p className="text-sm font-medium">No results yet</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">
+                      Run or Submit code to see results
+                    </p>
+                  </div>
+                ) : (
+                  (() => {
+                    const parsed = parseOutput(output);
+                    const getResultStyle = (status, hasError, isAccepted) => {
+                      if (hasError) {
+                        return {
+                          bg: "bg-red-100 dark:bg-red-950/30",
+                          text: "text-red-600 dark:text-red-400",
+                          icon: XCircle,
+                        };
+                      }
+                      if (isAccepted) {
+                        return {
+                          bg: "bg-green-100 dark:bg-green-950/30",
+                          text: "text-green-600 dark:text-green-400",
+                          icon: CheckCircle2,
+                        };
+                      }
+                      if (status === "Time Limit Exceeded") {
+                        return {
+                          bg: "bg-yellow-100 dark:bg-yellow-950/30",
+                          text: "text-yellow-600 dark:text-yellow-400",
+                          icon: Clock,
+                        };
+                      } else {
+                        return {
+                          bg: "bg-red-100 dark:bg-red-950/30",
+                          text: "text-red-600 dark:text-red-400",
+                          icon: XCircle,
+                        };
+                      }
+                    };
+                    const style = getResultStyle(
+                      parsed.statusText,
+                      parsed.hasError,
+                      parsed.isAccepted
+                    );
+                    let subText = parsed.hasError
+                      ? "Check execution log for details"
+                      : parsed.isAccepted
+                      ? "All test cases passed"
+                      : parsed.statusText === "Time Limit Exceeded"
+                      ? "Execution took too long - optimize your code"
+                      : parsed.statusText.includes("Error")
+                      ? "Fix the errors in your code"
+                      : "Some test cases failed - check log for details";
 
-            {/* Theme Toggle */}
-            <ThemeToggle />
+                    return (
+                      <div className="space-y-4 h-full">
+                        <div className="flex items-center justify-between pb-3 border-b border-border">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`h-10 w-10 rounded-full ${style.bg} flex items-center justify-center`}
+                            >
+                              <style.icon className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <p className={`text-lg font-bold ${style.text}`}>
+                                {parsed.statusText}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {subText}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
 
-            <Button
-              onClick={submitCode}
-              disabled={isSubmitting || !isAuthenticated}
-              size="sm"
-              className="gap-2 bg-green-600 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              title={
-                !isAuthenticated
-                  ? "Please log in to submit"
-                  : "Submit your solution"
-              }
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                "Submit"
-              )}
-            </Button>
+                        {parsed.metrics.length > 0 && (
+                          <div className="grid grid-cols-3 gap-3">
+                            {parsed.metrics.map((m, i) => (
+                              <div
+                                key={i}
+                                className="bg-gradient-to-br from-muted/50 to-muted/30 p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
+                              >
+                                <p className="text-xs text-muted-foreground mb-1 font-medium">
+                                  {m.label}
+                                </p>
+                                <p className="text-lg font-bold text-foreground">
+                                  {m.value}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()
+                )}
+              </TabsContent>
 
-            {showSubmissionSuccess && (
-              <div className="absolute -bottom-12 right-0 bg-green-600 text-white px-4 py-2 rounded-md shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2 z-50">
-                <CheckCircle2 className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  Submission Successful!
-                </span>
-              </div>
-            )}
+              <TabsContent
+                value="log"
+                className="flex-1 p-4 overflow-auto font-mono text-sm min-h-0"
+              >
+                {!output || output.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <Terminal size={48} className="mb-3 opacity-30" />
+                    <p className="text-sm font-medium">No logs yet</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">
+                      Run or Submit to generate execution logs
+                    </p>
+                  </div>
+                ) : (
+                  (() => {
+                    const parsed = parseOutput(output);
+                    const logs = parsed.logData;
+
+                    return (
+                      <div className="space-y-2">
+                        {logs.map((entry, index) => {
+                          if (entry.type === "output") {
+                            return (
+                              <div key={index} className="space-y-2">
+                                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">
+                                  Program Output
+                                </p>
+                                <div className="bg-background border border-border rounded-md p-3">
+                                  <pre className="text-foreground whitespace-pre-wrap text-sm">
+                                    {entry.message}
+                                  </pre>
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          const base =
+                            "p-3 rounded-md border flex items-start gap-2.5";
+                          let tone = "border-border/50 bg-muted/30";
+                          let Icon = Terminal;
+
+                          if (entry.type === "error") {
+                            tone =
+                              "border-red-500/30 bg-red-50/50 dark:bg-red-950/20";
+                            Icon = XCircle;
+                          } else if (entry.type === "success") {
+                            tone =
+                              "border-green-500/30 bg-green-50/50 dark:bg-green-950/20";
+                            Icon = CheckCircle2;
+                          } else if (entry.type === "metric") {
+                            tone =
+                              "border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20";
+                            Icon = Clock;
+                          } else if (entry.type === "info") {
+                            tone =
+                              "border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20";
+                            Icon = Terminal;
+                          }
+
+                          return (
+                            <div key={index} className={`${base} ${tone}`}>
+                              <Icon className="h-4 w-4 mt-0.5 shrink-0" />
+                              <span className="whitespace-pre-wrap flex-1">
+                                {entry.message}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
 
-        {/* Monaco Editor */}
-        <div
-          className="overflow-hidden relative"
-          style={{ height: `${100 - consoleHeight}%` }}
-        >
-          <Editor
-            height="100%"
-            language={language}
-            theme={mounted && resolvedTheme === "dark" ? "vs-dark" : "light"}
-            value={code}
-            onChange={(value) => setCode(value || "")}
-            onMount={handleEditorDidMount}
-            options={{
-              fontSize: 14,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-              lineNumbers: "on",
-              roundedSelection: false,
-              padding: { top: 16, bottom: 16 },
-            }}
-          />
-        </div>
+        {/* AI Chat Panel */}
+        {showAIChat && (
+          <>
+            {/* Resize Handle for AI Chat */}
+            <div
+              className="w-1 bg-border hover:bg-primary hover:w-1.5 cursor-col-resize transition-all duration-150 relative group flex-shrink-0"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                const startX = e.clientX;
+                const startWidth = aiChatWidth;
 
-        {/* Horizontal Resize Handle */}
-        <div
-          className="h-1 bg-border hover:bg-primary hover:h-1.5 cursor-row-resize transition-all duration-150 relative group flex-shrink-0"
-          onMouseDown={() => setIsDraggingHorizontal(true)}
-        >
-          <div className="absolute inset-x-0 -top-1 -bottom-1 group-hover:bg-primary/10" />
-        </div>
+                const handleMouseMove = (e) => {
+                  const rightPanel = document.getElementById("right-panel");
+                  if (rightPanel) {
+                    const rect = rightPanel.getBoundingClientRect();
+                    const newWidth =
+                      ((rect.right - e.clientX) / rect.width) * 100;
+                    setAiChatWidth(Math.min(Math.max(newWidth, 20), 50));
+                  }
+                };
 
-        {/* Console/Output Section */}
-        <div
-          className="border-t border-border flex flex-col bg-background shrink-0 overflow-hidden"
-          style={{ height: `${consoleHeight}%` }}
-        >
-          <Tabs defaultValue="result" className="flex-1 flex flex-col min-h-0">
-            <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-muted/30 px-4 shrink-0">
-              <TabsTrigger
-                value="result"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-              >
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Result
-              </TabsTrigger>
-              <TabsTrigger
-                value="log"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-              >
-                <Terminal className="h-4 w-4 mr-2" />
-                Execution Log
-              </TabsTrigger>
-            </TabsList>
+                const handleMouseUp = () => {
+                  document.removeEventListener("mousemove", handleMouseMove);
+                  document.removeEventListener("mouseup", handleMouseUp);
+                  document.body.style.cursor = "default";
+                  document.body.style.userSelect = "auto";
+                };
 
-            <TabsContent
-              value="result"
-              className="flex-1 p-4 overflow-auto min-h-0"
+                document.addEventListener("mousemove", handleMouseMove);
+                document.addEventListener("mouseup", handleMouseUp);
+                document.body.style.cursor = "col-resize";
+                document.body.style.userSelect = "none";
+              }}
             >
-              {isSubmitting ? (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                  <Loader2 size={48} className="mb-3 opacity-50 animate-spin" />
-                  <p className="text-sm font-medium">
-                    Evaluating your submission...
-                  </p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">
-                    Please wait
-                  </p>
-                </div>
-              ) : !output || output.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                  <Terminal size={48} className="mb-3 opacity-30" />
-                  <p className="text-sm font-medium">No results yet</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">
-                    Run or Submit code to see results
-                  </p>
-                </div>
-              ) : (
-                (() => {
-                  const parsed = parseOutput(output);
-                  const getResultStyle = (status, hasError, isAccepted) => {
-                    if (hasError) {
-                      return {
-                        bg: "bg-red-100 dark:bg-red-950/30",
-                        text: "text-red-600 dark:text-red-400",
-                        icon: XCircle,
-                      };
-                    }
-                    if (isAccepted) {
-                      return {
-                        bg: "bg-green-100 dark:bg-green-950/30",
-                        text: "text-green-600 dark:text-green-400",
-                        icon: CheckCircle2,
-                      };
-                    }
-                    if (status === "Time Limit Exceeded") {
-                      return {
-                        bg: "bg-yellow-100 dark:bg-yellow-950/30",
-                        text: "text-yellow-600 dark:text-yellow-400",
-                        icon: Clock,
-                      };
-                    } else {
-                      return {
-                        bg: "bg-red-100 dark:bg-red-950/30",
-                        text: "text-red-600 dark:text-red-400",
-                        icon: XCircle,
-                      };
-                    }
-                  };
-                  const style = getResultStyle(
-                    parsed.statusText,
-                    parsed.hasError,
-                    parsed.isAccepted
-                  );
-                  let subText = parsed.hasError
-                    ? "Check execution log for details"
-                    : parsed.isAccepted
-                    ? "All test cases passed"
-                    : parsed.statusText === "Time Limit Exceeded"
-                    ? "Execution took too long - optimize your code"
-                    : parsed.statusText.includes("Error")
-                    ? "Fix the errors in your code"
-                    : "Some test cases failed - check log for details";
+              <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-primary/10" />
+            </div>
 
-                  return (
-                    <div className="space-y-4 h-full">
-                      <div className="flex items-center justify-between pb-3 border-b border-border">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`h-10 w-10 rounded-full ${style.bg} flex items-center justify-center`}
-                          >
-                            <style.icon className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <p className={`text-lg font-bold ${style.text}`}>
-                              {parsed.statusText}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {subText}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {parsed.metrics.length > 0 && (
-                        <div className="grid grid-cols-3 gap-3">
-                          {parsed.metrics.map((m, i) => (
-                            <div
-                              key={i}
-                              className="bg-gradient-to-br from-muted/50 to-muted/30 p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
-                            >
-                              <p className="text-xs text-muted-foreground mb-1 font-medium">
-                                {m.label}
-                              </p>
-                              <p className="text-lg font-bold text-foreground">
-                                {m.value}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()
-              )}
-            </TabsContent>
-
-            <TabsContent
-              value="log"
-              className="flex-1 p-4 overflow-auto font-mono text-sm min-h-0"
+            {/* AI Chat Component */}
+            <div
+              className="flex-shrink-0 overflow-hidden"
+              style={{ width: `${aiChatWidth}%` }}
             >
-              {!output || output.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                  <Terminal size={48} className="mb-3 opacity-30" />
-                  <p className="text-sm font-medium">No logs yet</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">
-                    Run or Submit to generate execution logs
-                  </p>
-                </div>
-              ) : (
-                (() => {
-                  const parsed = parseOutput(output);
-                  const logs = parsed.logData;
-
-                  return (
-                    <div className="space-y-2">
-                      {logs.map((entry, index) => {
-                        if (entry.type === "output") {
-                          return (
-                            <div key={index} className="space-y-2">
-                              <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">
-                                Program Output
-                              </p>
-                              <div className="bg-background border border-border rounded-md p-3">
-                                <pre className="text-foreground whitespace-pre-wrap text-sm">
-                                  {entry.message}
-                                </pre>
-                              </div>
-                            </div>
-                          );
-                        }
-
-                        const base =
-                          "p-3 rounded-md border flex items-start gap-2.5";
-                        let tone = "border-border/50 bg-muted/30";
-                        let Icon = Terminal;
-
-                        if (entry.type === "error") {
-                          tone =
-                            "border-red-500/30 bg-red-50/50 dark:bg-red-950/20";
-                          Icon = XCircle;
-                        } else if (entry.type === "success") {
-                          tone =
-                            "border-green-500/30 bg-green-50/50 dark:bg-green-950/20";
-                          Icon = CheckCircle2;
-                        } else if (entry.type === "metric") {
-                          tone =
-                            "border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20";
-                          Icon = Clock;
-                        } else if (entry.type === "info") {
-                          tone =
-                            "border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20";
-                          Icon = Terminal;
-                        }
-
-                        return (
-                          <div key={index} className={`${base} ${tone}`}>
-                            <Icon className="h-4 w-4 mt-0.5 shrink-0" />
-                            <span className="whitespace-pre-wrap flex-1">
-                              {entry.message}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
+              <AIChat
+                code={code}
+                language={language}
+                questionTitle={question?.title}
+                onClose={() => setShowAIChat(false)}
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Mobile Responsive Overlay */}

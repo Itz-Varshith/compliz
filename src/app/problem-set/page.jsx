@@ -244,8 +244,9 @@ function App() {
       try {
         setIsLoading(true)
         setError(null)
+        console.log("Sending request")
         const response = await fetch("http://localhost:5000/question/all")
-
+        console.log(response)
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
