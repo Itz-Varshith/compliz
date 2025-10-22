@@ -643,7 +643,7 @@ function App() {
       setUser(user)
     }
 
-    getToken()
+    getToken() 
     getUser()
   }, [supabase])
 
