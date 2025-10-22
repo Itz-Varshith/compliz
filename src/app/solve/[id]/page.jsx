@@ -1015,12 +1015,12 @@ export default function SolvePage({ params }) {
               )}
             </Button>
 
-            {showSubmissionSuccess && (
+            {/* {showSubmissionSuccess && (
               <div className="absolute -bottom-12 right-0 bg-green-600 text-white px-4 py-2 rounded-md shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2 z-50">
                 <CheckCircle2 className="h-4 w-4" />
                 <span className="text-sm font-medium">Submission Successful!</span>
               </div>
-            )}
+            )} */}
           </div>
         </div>
 
