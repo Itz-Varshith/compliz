@@ -1,14 +1,24 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import useSWR from "swr"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Input } from "@/components/ui/input"
+import { useState, useEffect } from "react";
+import useSWR from "swr";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
 import {
   User,
   LogOut,
@@ -23,10 +33,10 @@ import {
   Clock,
   Code2,
   Search,
-} from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
-import { copyToClipboard } from "@/components/copyToClipboard"
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { copyToClipboard } from "@/components/copyToClipboard";
 import {
   LineChart,
   Line,
@@ -40,7 +50,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts"
+} from "recharts";
 
 const topicProgress = [
   { topic: "Arrays", solved: 25, fill: "hsl(var(--chart-1))" },
@@ -48,87 +58,110 @@ const topicProgress = [
   { topic: "Graphs", solved: 18, fill: "hsl(var(--chart-3))" },
   { topic: "Strings", solved: 15, fill: "hsl(var(--chart-4))" },
   { topic: "Trees", solved: 19, fill: "hsl(var(--chart-5))" },
-]
+];
 
 // Helper function to format date
 const formatDate = (timestamp) => {
-  if (!timestamp) return "N/A"
-  const date = new Date(timestamp)
-  if (isNaN(date.getTime())) return "N/A"
-  
-  const day = String(date.getDate()).padStart(2, '0')
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                  'July', 'August', 'September', 'October', 'November', 'December']
-  const month = months[date.getMonth()]
-  const year = date.getFullYear()
-  
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  
-  return `${day} ${month} ${year}, ${hours}:${minutes}`
-}
+  if (!timestamp) return "N/A";
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return "N/A";
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${day} ${month} ${year}, ${hours}:${minutes}`;
+};
 
 // Helper function to calculate stats
 const calculateStats = (submissions) => {
-  const total = submissions.length
-  const accepted = submissions.filter(s => 
-    s.verdict === "Accepted" || s.verdict === "AC" || s.verdict === "ACCEPTED"
-  ).length
-  const rate = total > 0 ? Math.round((accepted / total) * 100) : 0
-  
-  return { total, accepted, rate }
-}
+  const total = submissions.length;
+  const accepted = submissions.filter(
+    (s) =>
+      s.verdict === "Accepted" || s.verdict === "AC" || s.verdict === "ACCEPTED"
+  ).length;
+  const rate = total > 0 ? Math.round((accepted / total) * 100) : 0;
+
+  return { total, accepted, rate };
+};
 
 // Helper function to get last 7 days progress - ONLY ACCEPTED SOLUTIONS
 const getLast7DaysProgress = (submissions) => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  
-  const last7Days = []
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const last7Days = [];
   for (let i = 6; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(date.getDate() - i)
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
     last7Days.push({
       date: date,
-      dateStr: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      solved: 0
-    })
+      dateStr: date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+      solved: 0,
+    });
   }
-  
-  submissions.forEach(sub => {
-    const subDate = new Date(sub.timestamp)
-    if (isNaN(subDate.getTime())) return
-    
-    subDate.setHours(0, 0, 0, 0)
-    
-    const dayData = last7Days.find(d => d.date.getTime() === subDate.getTime())
+
+  submissions.forEach((sub) => {
+    const subDate = new Date(sub.timestamp);
+    if (isNaN(subDate.getTime())) return;
+
+    subDate.setHours(0, 0, 0, 0);
+
+    const dayData = last7Days.find(
+      (d) => d.date.getTime() === subDate.getTime()
+    );
     // Only count accepted solutions
-    if (dayData && (sub.verdict === "Accepted" || sub.verdict === "AC" || sub.verdict === "ACCEPTED")) {
-      dayData.solved++
+    if (
+      dayData &&
+      (sub.verdict === "Accepted" ||
+        sub.verdict === "AC" ||
+        sub.verdict === "ACCEPTED")
+    ) {
+      dayData.solved++;
     }
-  })
-  
-  return last7Days.map(d => ({ date: d.dateStr, solved: d.solved }))
-}
+  });
+
+  return last7Days.map((d) => ({ date: d.dateStr, solved: d.solved }));
+};
 
 export default function ProfilePage() {
-  const [user, setUser] = useState(null)
-  const [activeNav, setActiveNav] = useState("overview")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [expandedSubmission, setExpandedSubmission] = useState(null)
-  const [expandedCode, setExpandedCode] = useState(null)
-  const [accessToken, setAccessToken] = useState(null)
-  const router = useRouter()
-  const supabase = createClient()
+  const [user, setUser] = useState(null);
+  const [activeNav, setActiveNav] = useState("overview");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedSubmission, setExpandedSubmission] = useState(null);
+  const [expandedCode, setExpandedCode] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
+  const router = useRouter();
+  const supabase = createClient();
 
   const fetchUser = async () => {
     const {
       data: { user },
-    } = await supabase.auth.getUser()
-    return user
-  }
+    } = await supabase.auth.getUser();
+    return user;
+  };
 
-  const API_BASE = "http://localhost:5000"
+  const API_BASE = "http://localhost:5000";
 
   const fetchJson = async (url, token) => {
     const res = await fetch(url, {
@@ -137,16 +170,16 @@ export default function ProfilePage() {
         ? { Authorization: `Bearer ${token}`, Accept: "application/json" }
         : { Accept: "application/json" },
       credentials: "include",
-    })
+    });
     if (!res.ok) {
-      let message = res.statusText
+      let message = res.statusText;
       try {
-        message = await res.text()
+        message = await res.text();
       } catch {}
-      throw new Error(message || "Failed to fetch")
+      throw new Error(message || "Failed to fetch");
     }
-    return res.json()
-  }
+    return res.json();
+  };
 
   const toSubmission = (s, idx) => ({
     id: s?.id ?? idx,
@@ -158,180 +191,233 @@ export default function ProfilePage() {
     topics: Array.isArray(s?.topics) ? s.topics : [],
     timestamp: s?.timestamp ?? s?.createdAt ?? s?.created_at ?? "",
     code: s?.code ?? s?.source ?? "",
-  })
+  });
 
   const toCodeSnippet = (c, idx) => ({
     id: c?.id ?? idx,
     title: c?.title ?? c?.name ?? "Untitled",
     language: c?.language ?? c?.lang ?? "Unknown",
-    lastModified: c?.updatedAt ?? c?.updated_at ?? c?.createdAt ?? c?.created_at ?? "",
+    lastModified:
+      c?.updatedAt ?? c?.updated_at ?? c?.createdAt ?? c?.created_at ?? "",
     code: c?.code ?? c?.content ?? "",
-  })
+  });
 
   const {
     data: submissionsRaw,
     error: submissionsError,
     isLoading: submissionsLoading,
-  } = useSWR(user ? [`${API_BASE}/submission/all`, accessToken] : null, ([url, token]) => fetchJson(url, token), {
-    revalidateOnFocus: false,
-  })
+  } = useSWR(
+    user ? [`${API_BASE}/submission/all`, accessToken] : null,
+    ([url, token]) => fetchJson(url, token),
+    {
+      revalidateOnFocus: false,
+    }
+  );
   const {
     data: codesRaw,
     error: codesError,
     isLoading: codesLoading,
-  } = useSWR(user ? [`${API_BASE}/code/saved`, accessToken] : null, ([url, token]) => fetchJson(url, token), {
-    revalidateOnFocus: false,
-  })
-  
+  } = useSWR(
+    user ? [`${API_BASE}/code/saved`, accessToken] : null,
+    ([url, token]) => fetchJson(url, token),
+    {
+      revalidateOnFocus: false,
+    }
+  );
+
   const submissionsList = (() => {
-    let list = []
+    let list = [];
     if (Array.isArray(submissionsRaw)) {
-      list = submissionsRaw.map(toSubmission)
+      list = submissionsRaw.map(toSubmission);
     } else if (submissionsRaw && Array.isArray(submissionsRaw.submissions)) {
-      const subs = submissionsRaw.submissions
-      const questions = Array.isArray(submissionsRaw.questions) ? submissionsRaw.questions : []
-      const qMap = new Map()
+      const subs = submissionsRaw.submissions;
+      const questions = Array.isArray(submissionsRaw.questions)
+        ? submissionsRaw.questions
+        : [];
+      const qMap = new Map();
       for (const q of questions) {
-        if (q && q._id) qMap.set(q._id, q)
+        if (q && q._id) qMap.set(q._id, q);
       }
       list = subs.map((s, idx) => {
-        const qId = s?.questionID?.questionUUID
-        const qTitle = (qId && qMap.get(qId)?.title) || "Unknown Question"
+        const qId = s?.questionID?.questionUUID;
+        const qTitle = (qId && qMap.get(qId)?.title) || "Unknown Question";
         return {
           id: s?.id ?? idx,
           title: qTitle,
           verdict: s?.verdict ?? "Unknown",
           runtime: typeof s?.timeUsed === "number" ? `${s.timeUsed} ms` : "N/A",
-          memory: typeof s?.memoryUsed === "number" ? `${s.memoryUsed} KB` : "N/A",
+          memory:
+            typeof s?.memoryUsed === "number" ? `${s.memoryUsed} KB` : "N/A",
           language: s?.langId ?? "Unknown",
           topics: [],
           timestamp: s?.createdAt ?? "",
           code: s?.code ?? "",
-        }
-      })
+        };
+      });
     }
-    
+
     list.sort((a, b) => {
-      const dateA = new Date(a.timestamp)
-      const dateB = new Date(b.timestamp)
-      if (isNaN(dateA.getTime())) return 1
-      if (isNaN(dateB.getTime())) return -1
-      return dateB - dateA
-    })
-    
-    return list
-  })()
+      const dateA = new Date(a.timestamp);
+      const dateB = new Date(b.timestamp);
+      if (isNaN(dateA.getTime())) return 1;
+      if (isNaN(dateB.getTime())) return -1;
+      return dateB - dateA;
+    });
+
+    return list;
+  })();
 
   const savedCodesList = (() => {
     let raw;
-    if(codesRaw){
-      raw = codesRaw.allCodes
+    if (codesRaw) {
+      raw = codesRaw.allCodes;
     }
     const arr = Array.isArray(raw)
       ? raw
       : Array.isArray(raw?.codes)
-        ? raw.codes
-        : Array.isArray(raw?.data)
-          ? raw.data
-          : []
-    const list = arr.map(toCodeSnippet)
-    
-    list.sort((a, b) => {
-      const dateA = new Date(a.lastModified)
-      const dateB = new Date(b.lastModified)
-      if (isNaN(dateA.getTime())) return 1
-      if (isNaN(dateB.getTime())) return -1
-      return dateB - dateA
-    })
-    
-    return list
-  })()
+      ? raw.codes
+      : Array.isArray(raw?.data)
+      ? raw.data
+      : [];
+    const list = arr.map(toCodeSnippet);
 
-  const { data, error } = useSWR("user", fetchUser)
+    list.sort((a, b) => {
+      const dateA = new Date(a.lastModified);
+      const dateB = new Date(b.lastModified);
+      if (isNaN(dateA.getTime())) return 1;
+      if (isNaN(dateB.getTime())) return -1;
+      return dateB - dateA;
+    });
+
+    return list;
+  })();
+
+  const { data, error } = useSWR("user", fetchUser);
 
   useEffect(() => {
     const getUser = async () => {
       const {
         data: { user },
-      } = await supabase.auth.getUser()
-      setUser(user)
-    }
-    getUser()
-  }, [supabase])
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, [supabase]);
 
   useEffect(() => {
     const getSession = async () => {
-      const { data } = await supabase.auth.getSession()
-      setAccessToken(data.session?.access_token ?? null)
-    }
-    getSession()
-  }, [supabase])
+      const { data } = await supabase.auth.getSession();
+      setAccessToken(data.session?.access_token ?? null);
+    };
+    getSession();
+  }, [supabase]);
 
   // Get user name from auth metadata, fallback to email or "User"
-  const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || "User"
-  const userEmail = user?.email || "user@example.com"
-  const userInitial = userName?.charAt(0).toUpperCase() || "U"
+  const userName =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split("@")[0] ||
+    "User";
+  const userEmail = user?.email || "user@example.com";
+  const userInitial = userName?.charAt(0).toUpperCase() || "U";
 
-  const stats = calculateStats(submissionsList)
-  const dailyProgress = getLast7DaysProgress(submissionsList)
-  
+  const stats = calculateStats(submissionsList);
+  const dailyProgress = getLast7DaysProgress(submissionsList);
+
   const statsData = [
-    { label: "Total Submissions", value: stats.total, icon: Code2, color: "text-blue-600" },
-    { label: "Accepted Questions", value: stats.accepted, icon: CheckCircle2, color: "text-green-600" },
-    { label: "Acceptance Rate", value: `${stats.rate}%`, icon: Target, color: "text-orange-600" },
-  ]
+    {
+      label: "Total Submissions",
+      value: stats.total,
+      icon: Code2,
+      color: "text-blue-600",
+    },
+    {
+      label: "Accepted Questions",
+      value: stats.accepted,
+      icon: CheckCircle2,
+      color: "text-green-600",
+    },
+    {
+      label: "Acceptance Rate",
+      value: `${stats.rate}%`,
+      icon: Target,
+      color: "text-orange-600",
+    },
+  ];
 
   const filteredSubmissions = submissionsList.filter(
     (sub) =>
       sub.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       sub.language.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.topics.some((topic) => topic.toLowerCase().includes(searchQuery.toLowerCase())),
-  )
+      sub.topics.some((topic) =>
+        topic.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+  );
 
   const copyCode = (code) => {
-    copyToClipboard(code)
-  }
+    copyToClipboard(code);
+  };
 
   return (
-    <div className="h-[calc(100vh-4rem)] bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="h-[calc(100vh-4rem)] bg-gradient-to-br from-background via-background to-muted/10 dark:from-background dark:via-background dark:to-muted/5">
       <div className="flex h-[calc(100vh-4rem)]">
-        <aside className="w-64 border-r border-border bg-muted/20 backdrop-blur-md flex flex-col">
+        <aside className="w-64 border-r border-border bg-card/30 backdrop-blur-xl flex flex-col shadow-lg animate-slide-in-left">
           <nav className="flex-1 p-4 space-y-2">
             <Button
-              variant={activeNav === "overview" ? "secondary" : "ghost"}
-              className="w-full justify-start gap-2"
+              variant={activeNav === "overview" ? "default" : "ghost"}
+              className={`w-full justify-start gap-2 transition-all ${
+                activeNav === "overview"
+                  ? "bg-primary text-primary-foreground shadow-lg"
+                  : "hover:bg-muted/50"
+              }`}
               onClick={() => setActiveNav("overview")}
             >
               <TrendingUp className="h-4 w-4" />
               Overview
             </Button>
             <Button
-              variant={activeNav === "history" ? "secondary" : "ghost"}
-              className="w-full justify-start gap-2"
+              variant={activeNav === "history" ? "default" : "ghost"}
+              className={`w-full justify-start gap-2 transition-all ${
+                activeNav === "history"
+                  ? "bg-primary text-primary-foreground shadow-lg"
+                  : "hover:bg-muted/50"
+              }`}
               onClick={() => setActiveNav("history")}
             >
               <Clock className="h-4 w-4" />
               Practice History
             </Button>
             <Button
-              variant={activeNav === "progress" ? "secondary" : "ghost"}
-              className="w-full justify-start gap-2"
+              variant={activeNav === "progress" ? "default" : "ghost"}
+              className={`w-full justify-start gap-2 transition-all ${
+                activeNav === "progress"
+                  ? "bg-primary text-primary-foreground shadow-lg"
+                  : "hover:bg-muted/50"
+              }`}
               onClick={() => setActiveNav("progress")}
             >
               <Award className="h-4 w-4" />
               Progress
             </Button>
             <Button
-              variant={activeNav === "saved" ? "secondary" : "ghost"}
-              className="w-full justify-start gap-2"
+              variant={activeNav === "saved" ? "default" : "ghost"}
+              className={`w-full justify-start gap-2 transition-all ${
+                activeNav === "saved"
+                  ? "bg-primary text-primary-foreground shadow-lg"
+                  : "hover:bg-muted/50"
+              }`}
               onClick={() => setActiveNav("saved")}
             >
               <Code2 className="h-4 w-4" />
               Saved Codes
             </Button>
             <Button
-              variant={activeNav === "settings" ? "secondary" : "ghost"}
-              className="w-full justify-start gap-2"
+              variant={activeNav === "settings" ? "default" : "ghost"}
+              className={`w-full justify-start gap-2 transition-all ${
+                activeNav === "settings"
+                  ? "bg-primary text-primary-foreground shadow-lg"
+                  : "hover:bg-muted/50"
+              }`}
               onClick={() => setActiveNav("settings")}
             >
               <User className="h-4 w-4" />
@@ -339,14 +425,18 @@ export default function ProfilePage() {
             </Button>
           </nav>
 
-          <div className="p-4 border-t border-border space-y-4">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12 border-2 border-primary/50">
-                <AvatarFallback className="text-primary font-bold text-lg">{userInitial}</AvatarFallback>
+          <div className="p-4 border-t border-border space-y-4 bg-muted/20">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 hover:bg-background transition-all">
+              <Avatar className="h-14 w-14 border-2 border-primary shadow-lg">
+                <AvatarFallback className="text-primary font-bold text-xl bg-gradient-to-br from-primary/20 to-orange-500/20">
+                  {userInitial}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{userName}</p>
-                <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+                <p className="text-sm font-bold truncate">{userName}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {userEmail}
+                </p>
               </div>
             </div>
             {user ? (
@@ -360,7 +450,12 @@ export default function ProfilePage() {
                 Sign Out
               </Button>
             ) : (
-              <Button onClick={() => router.push("/login")} variant="default" size="sm" className="w-full gap-2">
+              <Button
+                onClick={() => router.push("/login")}
+                variant="default"
+                size="sm"
+                className="w-full gap-2"
+              >
                 Sign In
               </Button>
             )}
@@ -369,40 +464,71 @@ export default function ProfilePage() {
 
         <main className="flex-1 overflow-auto">
           <div className="container mx-auto p-6 max-w-7xl">
-            <Tabs value={activeNav} onValueChange={setActiveNav} className="space-y-6">
+            <Tabs
+              value={activeNav}
+              onValueChange={setActiveNav}
+              className="space-y-6"
+            >
               <TabsContent value="overview" className="space-y-6">
-                <div>
-                  <h1 className="text-4xl font-bold text-balance mb-2">Welcome back, {userName.split(" ")[0]} 👋</h1>
-                  <p className="text-muted-foreground">Here's your coding journey at a glance</p>
+                <div className="animate-fade-in">
+                  <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent mb-3">
+                    Welcome back, {userName.split(" ")[0]} 👋
+                  </h1>
+                  <p className="text-muted-foreground text-lg">
+                    Here's your coding journey at a glance
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {statsData.map((stat, index) => (
-                    <Card key={index} className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
+                    <Card
+                      key={index}
+                      className="border-border/50 shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-card/50 backdrop-blur-sm animate-fade-in"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
                       <CardContent className="pt-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <stat.icon className={`h-8 w-8 ${stat.color}`} />
-                          <div className="text-3xl font-bold mr-5">{stat.value}</div>
+                        <div className="flex items-center justify-between mb-3">
+                          <div
+                            className={`p-3 rounded-xl bg-gradient-to-br ${
+                              stat.color === "text-blue-600"
+                                ? "from-blue-500/10 to-blue-500/5"
+                                : stat.color === "text-green-600"
+                                ? "from-green-500/10 to-green-500/5"
+                                : "from-orange-500/10 to-orange-500/5"
+                            }`}
+                          >
+                            <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                          </div>
+                          <div className="text-4xl font-bold">{stat.value}</div>
                         </div>
-                        <p className="text-sm text-muted-foreground">{stat.label}</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {stat.label}
+                        </p>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
 
-                <Card className="border-border/50 shadow-lg">
+                <Card className="border-border/50 shadow-xl hover:shadow-2xl transition-all bg-card/50 backdrop-blur-sm animate-fade-in animate-delay-300">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5 text-primary" />
+                    <CardTitle className="flex items-center gap-3 text-xl">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <TrendingUp className="h-5 w-5 text-primary" />
+                      </div>
                       Recent Activity
                     </CardTitle>
-                    <CardDescription>Your last 7 days of accepted solutions</CardDescription>
+                    <CardDescription className="text-base">
+                      Your last 7 days of accepted solutions
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="text-primary">
                       <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={dailyProgress}>
-                          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            className="stroke-border"
+                          />
                           <XAxis dataKey="date" className="text-xs" />
                           <YAxis className="text-xs" />
                           <Tooltip
@@ -412,7 +538,12 @@ export default function ProfilePage() {
                               borderRadius: "8px",
                             }}
                           />
-                          <Line type="monotone" dataKey="solved" strokeWidth={2} dot={{ fill: "currentColor" }} />
+                          <Line
+                            type="monotone"
+                            dataKey="solved"
+                            strokeWidth={2}
+                            dot={{ fill: "currentColor" }}
+                          />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -421,9 +552,13 @@ export default function ProfilePage() {
               </TabsContent>
 
               <TabsContent value="history" className="space-y-6">
-                <div>
-                  <h2 className="text-3xl font-bold mb-2">Practice History</h2>
-                  <p className="text-muted-foreground">Review your past submissions and solutions</p>
+                <div className="animate-fade-in">
+                  <h2 className="text-4xl font-bold bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent mb-3">
+                    Practice History
+                  </h2>
+                  <p className="text-muted-foreground text-lg">
+                    Review your past submissions and solutions
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-2 mb-4">
@@ -438,11 +573,21 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {submissionsLoading && <p className="text-sm text-muted-foreground">Loading submissions...</p>}
-                {submissionsError && <p className="text-sm text-destructive">Failed to load submissions</p>}
+                {submissionsLoading && (
+                  <p className="text-sm text-muted-foreground">
+                    Loading submissions...
+                  </p>
+                )}
+                {submissionsError && (
+                  <p className="text-sm text-destructive">
+                    Failed to load submissions
+                  </p>
+                )}
 
                 <div className="space-y-4">
-                  {filteredSubmissions.length === 0 && !submissionsLoading && !submissionsError ? (
+                  {filteredSubmissions.length === 0 &&
+                  !submissionsLoading &&
+                  !submissionsError ? (
                     <Card className="border-border/50">
                       <CardContent className="py-10 text-center text-muted-foreground">
                         No submissions found.
@@ -450,24 +595,42 @@ export default function ProfilePage() {
                     </Card>
                   ) : null}
 
-                  {filteredSubmissions.map((submission) => (
-                    <Card key={submission.id} className="border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                  {filteredSubmissions.map((submission, index) => (
+                    <Card
+                      key={submission.id}
+                      className="border-border/50 shadow-lg hover:shadow-2xl hover:scale-[1.01] transition-all duration-300 bg-card/50 backdrop-blur-sm animate-fade-in"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
                       <Collapsible
                         open={expandedSubmission === submission.id}
                         onOpenChange={() =>
-                          setExpandedSubmission(expandedSubmission === submission.id ? null : submission.id)
+                          setExpandedSubmission(
+                            expandedSubmission === submission.id
+                              ? null
+                              : submission.id
+                          )
                         }
                       >
                         <CardHeader className="pb-4">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <CardTitle className="text-lg">{submission.title}</CardTitle>
+                                <CardTitle className="text-lg">
+                                  {submission.title}
+                                </CardTitle>
                                 <Badge
-                                  variant={submission.verdict === "Accepted" || submission.verdict === "AC" || submission.verdict === "ACCEPTED" ? "default" : "destructive"}
+                                  variant={
+                                    submission.verdict === "Accepted" ||
+                                    submission.verdict === "AC" ||
+                                    submission.verdict === "ACCEPTED"
+                                      ? "default"
+                                      : "destructive"
+                                  }
                                   className="gap-1"
                                 >
-                                  {submission.verdict === "Accepted" || submission.verdict === "AC" || submission.verdict === "ACCEPTED" ? (
+                                  {submission.verdict === "Accepted" ||
+                                  submission.verdict === "AC" ||
+                                  submission.verdict === "ACCEPTED" ? (
                                     <CheckCircle2 className="h-3 w-3" />
                                   ) : (
                                     <XCircle className="h-3 w-3" />
@@ -493,14 +656,22 @@ export default function ProfilePage() {
                               </div>
                               <div className="flex flex-wrap gap-2 mt-3">
                                 {submission.topics.map((topic, idx) => (
-                                  <Badge key={idx} variant="outline" className="text-xs">
+                                  <Badge
+                                    key={idx}
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
                                     {topic}
                                   </Badge>
                                 ))}
                               </div>
                             </div>
                             <CollapsibleTrigger asChild>
-                              <Button variant="ghost" size="sm" className="ml-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="ml-2"
+                              >
                                 {expandedSubmission === submission.id ? (
                                   <ChevronDown className="h-4 w-4" />
                                 ) : (
@@ -514,7 +685,9 @@ export default function ProfilePage() {
                           <CardContent className="pt-0">
                             <div className="bg-muted/50 rounded-lg p-4 border border-border">
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-semibold">Submitted Code</span>
+                                <span className="text-sm font-semibold">
+                                  Submitted Code
+                                </span>
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -538,13 +711,17 @@ export default function ProfilePage() {
               </TabsContent>
 
               <TabsContent value="progress" className="space-y-6">
-                <div>
-                  <h2 className="text-3xl font-bold mb-2">Progress Analytics</h2>
-                  <p className="text-muted-foreground">Track your improvement over time</p>
+                <div className="animate-fade-in">
+                  <h2 className="text-4xl font-bold bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent mb-3">
+                    Progress Analytics
+                  </h2>
+                  <p className="text-muted-foreground text-lg">
+                    Track your improvement over time
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="border-border/50 shadow-lg">
+                  <Card className="border-border/50 shadow-xl hover:shadow-2xl transition-all bg-card/50 backdrop-blur-sm animate-fade-in animate-delay-100">
                     <CardHeader>
                       <CardTitle>Accepted Solutions per Day</CardTitle>
                       <CardDescription>Last 7 days activity</CardDescription>
@@ -553,7 +730,10 @@ export default function ProfilePage() {
                       <div className="text-[hsl(var(--chart-1))]">
                         <ResponsiveContainer width="100%" height={300}>
                           <LineChart data={dailyProgress}>
-                            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              className="stroke-border"
+                            />
                             <XAxis dataKey="date" className="text-xs" />
                             <YAxis className="text-xs" />
                             <Tooltip
@@ -563,22 +743,32 @@ export default function ProfilePage() {
                                 borderRadius: "8px",
                               }}
                             />
-                            <Line type="monotone" dataKey="solved" strokeWidth={2} dot={{ fill: "currentColor" }} />
+                            <Line
+                              type="monotone"
+                              dataKey="solved"
+                              strokeWidth={2}
+                              dot={{ fill: "currentColor" }}
+                            />
                           </LineChart>
                         </ResponsiveContainer>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-border/50 shadow-lg">
+                  <Card className="border-border/50 shadow-xl hover:shadow-2xl transition-all bg-card/50 backdrop-blur-sm animate-fade-in animate-delay-200">
                     <CardHeader>
                       <CardTitle>Questions by Topic</CardTitle>
-                      <CardDescription>Distribution across different topics</CardDescription>
+                      <CardDescription>
+                        Distribution across different topics
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={topicProgress}>
-                          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            className="stroke-border"
+                          />
                           <XAxis dataKey="topic" className="text-xs" />
                           <YAxis className="text-xs" />
                           <Tooltip
@@ -599,10 +789,12 @@ export default function ProfilePage() {
                   </Card>
                 </div>
 
-                <Card className="border-border/50 shadow-lg">
+                <Card className="border-border/50 shadow-xl hover:shadow-2xl transition-all bg-card/50 backdrop-blur-sm animate-fade-in animate-delay-300">
                   <CardHeader>
                     <CardTitle>Topic Distribution</CardTitle>
-                    <CardDescription>Pie chart view of your problem-solving focus</CardDescription>
+                    <CardDescription>
+                      Pie chart view of your problem-solving focus
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={400}>
@@ -635,35 +827,68 @@ export default function ProfilePage() {
               </TabsContent>
 
               <TabsContent value="saved" className="space-y-6">
-                <div>
-                  <h2 className="text-3xl font-bold mb-2">Saved Code Snippets</h2>
-                  <p className="text-muted-foreground">Your personal code template library</p>
+                <div className="animate-fade-in">
+                  <h2 className="text-4xl font-bold bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent mb-3">
+                    Saved Code Snippets
+                  </h2>
+                  <p className="text-muted-foreground text-lg">
+                    Your personal code template library
+                  </p>
                 </div>
 
-                {codesLoading && <p className="text-sm text-muted-foreground">Loading saved codes...</p>}
-                {codesError && <p className="text-sm text-destructive">Failed to load saved codes</p>}
+                {codesLoading && (
+                  <p className="text-sm text-muted-foreground">
+                    Loading saved codes...
+                  </p>
+                )}
+                {codesError && (
+                  <p className="text-sm text-destructive">
+                    Failed to load saved codes
+                  </p>
+                )}
 
                 <div className="space-y-4">
-                  {savedCodesList.length === 0 && !codesLoading && !codesError ? (
+                  {savedCodesList.length === 0 &&
+                  !codesLoading &&
+                  !codesError ? (
                     <Card className="border-border/50">
-                      <CardContent className="py-10 text-center text-muted-foreground">No saved codes yet.</CardContent>
+                      <CardContent className="py-10 text-center text-muted-foreground">
+                        No saved codes yet.
+                      </CardContent>
                     </Card>
                   ) : null}
 
-                  {savedCodesList.map((codeSnippet) => (
-                    <Card key={codeSnippet.id} className="border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                  {savedCodesList.map((codeSnippet, index) => (
+                    <Card
+                      key={codeSnippet.id}
+                      className="border-border/50 shadow-lg hover:shadow-2xl hover:scale-[1.01] transition-all duration-300 bg-card/50 backdrop-blur-sm animate-fade-in"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
                       <Collapsible
                         open={expandedCode === codeSnippet.id}
-                        onOpenChange={() => setExpandedCode(expandedCode === codeSnippet.id ? null : codeSnippet.id)}
+                        onOpenChange={() =>
+                          setExpandedCode(
+                            expandedCode === codeSnippet.id
+                              ? null
+                              : codeSnippet.id
+                          )
+                        }
                       >
                         <CardHeader className="pb-4">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <CardTitle className="text-lg">{codeSnippet.title}</CardTitle>
-                                <Badge variant="secondary">{codeSnippet.language}</Badge>
+                                <CardTitle className="text-lg">
+                                  {codeSnippet.title}
+                                </CardTitle>
+                                <Badge variant="secondary">
+                                  {codeSnippet.language}
+                                </Badge>
                               </div>
-                              <p className="text-sm text-muted-foreground">Last modified: {formatDate(codeSnippet.lastModified)}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Last modified:{" "}
+                                {formatDate(codeSnippet.lastModified)}
+                              </p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button
@@ -706,14 +931,18 @@ export default function ProfilePage() {
               <TabsContent value="settings" className="space-y-6">
                 <div>
                   <h2 className="text-3xl font-bold mb-2">Settings</h2>
-                  <p className="text-muted-foreground">Manage your profile and preferences</p>
+                  <p className="text-muted-foreground">
+                    Manage your profile and preferences
+                  </p>
                 </div>
 
                 <Card className="border-border/50 shadow-lg">
                   <CardContent className="flex items-center justify-center py-24">
                     <div className="text-center space-y-2">
                       <User className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                      <p className="text-muted-foreground">Profile and theme settings coming soon...</p>
+                      <p className="text-muted-foreground">
+                        Profile and theme settings coming soon...
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -723,5 +952,5 @@ export default function ProfilePage() {
         </main>
       </div>
     </div>
-  )
+  );
 }
