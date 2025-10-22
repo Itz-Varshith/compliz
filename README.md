@@ -141,97 +141,6 @@
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:5000
 
-## 📁 Project Structure
-
-```
-compliz/
-├── src/                          # Frontend source code
-│   ├── app/                      # Next.js App Router pages
-│   │   ├── compiler/            # Online compiler page
-│   │   ├── problem-set/         # Practice problems listing
-│   │   ├── solve/[id]/          # Individual problem solving page
-│   │   ├── profile/             # User profile and analytics
-│   │   ├── question/            # Question creation page
-│   │   └── login/               # Authentication page
-│   ├── components/              # Reusable React components
-│   │   ├── ui/                  # UI component library
-│   │   └── code-editor.jsx      # Monaco editor wrapper
-│   ├── lib/                     # Utility libraries
-│   │   ├── supabase/           # Supabase client configuration
-│   │   └── utils.js            # Helper functions
-│   └── hooks/                   # Custom React hooks
-├── backend/                     # Backend API server
-│   ├── controllers/            # Route controllers
-│   ├── models/                 # Database models
-│   ├── routes/                 # API route definitions
-│   ├── middleware/             # Express middleware
-│   ├── helpers/                # Utility functions
-│   ├── prisma/                 # Database schema and migrations
-│   └── generated/             # Prisma generated client
-├── public/                     # Static assets
-└── package.json               # Frontend dependencies
-```
-
-## 🔧 API Endpoints
-
-### Authentication
-
-- `POST /auth/login` - User authentication
-- `POST /auth/logout` - User logout
-
-### Questions
-
-- `GET /question/all` - Fetch all questions
-- `GET /question/one/:id` - Fetch specific question
-- `POST /question/new` - Create new question
-
-### Code Execution
-
-- `POST /code/compile` - Compile and run code
-- `POST /code/submit` - Submit solution for evaluation
-- `POST /code/self` - Save user code with execution
-- `GET /code/saved` - Fetch saved code snippets
-
-### Submissions
-
-- `GET /submission/all` - Fetch user's submission history
-- `GET /submission/one/:id` - Fetch submissions for specific question
-
-## 🎨 UI Components
-
-The project uses a custom component library built on Radix UI primitives:
-
-- **Button**: Customizable button component with variants
-- **Card**: Container component for content organization
-- **Input/Textarea**: Form input components
-- **Tabs**: Tabbed interface component
-- **Collapsible**: Expandable content sections
-- **Badge**: Status and category indicators
-- **Avatar**: User profile images
-- **Popover**: Overlay components for additional content
-
-## 🔐 Authentication Flow
-
-1. **OAuth Integration**: Users can sign in with Google or GitHub
-2. **Session Management**: Supabase handles session tokens and refresh
-3. **Protected Routes**: Middleware protects authenticated routes
-4. **User Data**: User information stored in PostgreSQL via Prisma
-
-## 📊 Database Schema
-
-### Core Models
-
-- **User**: User profiles and authentication data
-- **Question**: Coding problems with metadata
-- **Submissions**: User code submissions and results
-- **UserCodes**: Saved code snippets
-
-### Relationships
-
-- Users have many Submissions
-- Questions have many Submissions
-- Users have many UserCodes
-
 ## 🚀 Deployment
 
 ### Frontend (Vercel)
@@ -247,22 +156,6 @@ The project uses a custom component library built on Radix UI primitives:
 3. Configure PostgreSQL database
 4. Deploy with automatic builds
 
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-- Follow the existing code style
-- Write meaningful commit messages
-- Add tests for new features
-- Update documentation as needed
 
 ## 📝 License
 
@@ -270,26 +163,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Authors
 
-- **Varshith** - _Initial work_ - [@Itz-Varshith](https://github.com/Itz-Varshith)
-- **Harshith** - _Co-developer_ - [GitHub Profile]
+- **Varshith**  - [@Itz-Varshith](https://github.com/Itz-Varshith)
+- **Harshith**  - [@Yagami-light45](https://github.com/Yagami-light45)
 
-## 🙏 Acknowledgments
-
-- [Judge0 API](https://judge0.com/) for code execution services
-- [Supabase](https://supabase.com/) for authentication and database
-- [Monaco Editor](https://microsoft.github.io/monaco-editor/) for code editing
-- [Radix UI](https://www.radix-ui.com/) for accessible component primitives
-- [Tailwind CSS](https://tailwindcss.com/) for styling
-
-## 📞 Support
-
-If you have any questions or need help, please:
-
-1. Check the [Issues](https://github.com/Itz-Varshith/compliz/issues) page
-2. Create a new issue with detailed information
-3. Contact the maintainers
-
----
 
 <div align="center">
   <p>Made with ❤️ by Varshith & Harshith</p>
