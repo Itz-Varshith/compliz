@@ -47,6 +47,8 @@ const createQuestionHandler = async (req, res) => {
       !data.topics ||
       !data.testCases ||
       !data.solutionCode ||
+      !data.boilerPlateCodes ||
+      !Array.isArray(data.boilerPlateCodes) ||
       !Array.isArray(data.constraints) ||
       !Array.isArray(data.topics) ||
       !Array.isArray(data.hints)
@@ -68,7 +70,8 @@ const createQuestionHandler = async (req, res) => {
       timeLimit: data.timeLimit, // Pass from the frontend as Integer
       memoryLimit: data.memoryLimit, // Pass from frontend as integer
       testCases : data.testCases,
-      solutionCode : data.solutionCode
+      solutionCode : data.solutionCode,
+      boilerPlateCodes : data.boilerPlateCodes // Pass an array of objects where each object has a language and code property. In the frontend the language must be a string and the code must be a string also one more thing is that boiler plate must be provided for all the languages
     });
 
     await newQuestion.save();

@@ -49,7 +49,11 @@ const questionSchema = new Schema(
     solutionCode:{
       type: String,
       required: true,
-    }
+    },
+    boilerPlateCodes:[{
+      language:String,
+      code:String
+    }]
   },
   { timestamps: true, minimize: false }
 );
