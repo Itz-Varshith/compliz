@@ -29,6 +29,11 @@ import {
 } from "@/components/ui/collapsible";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import {
+  extractSolutionCode,
+  combineWithBoilerplate,
+  getMonacoLanguage,
+} from "@/lib/codeUtils";
 
 export default function SolvePage({ params }) {
   const resolvedParams = params;
@@ -50,6 +55,7 @@ export default function SolvePage({ params }) {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [solutionCode, setSolutionCode] = useState("");
   const [boilerPlateCodes, setBoilerPlateCodes] = useState([]);
+  const [originalBoilerplates, setOriginalBoilerplates] = useState({});
   const editorRef = useRef(null);
 
   const [token, setToken] = useState(null);
@@ -230,7 +236,20 @@ export default function SolvePage({ params }) {
     if (boilerPlateCodes && boilerPlateCodes.length > 0) {
       const firstLanguage = boilerPlateCodes[0];
       setLanguage(firstLanguage.language);
-      setCode(firstLanguage.code);
+
+      // Store original boilerplates for all languages
+      const boilerplateMap = {};
+      boilerPlateCodes.forEach((bp) => {
+        boilerplateMap[bp.language] = bp.code;
+      });
+      setOriginalBoilerplates(boilerplateMap);
+
+      // Extract and set only the solution part
+      const extractedCode = extractSolutionCode(
+        firstLanguage.code,
+        firstLanguage.language
+      );
+      setCode(extractedCode);
     }
   }, [boilerPlateCodes]);
 
@@ -256,7 +275,12 @@ export default function SolvePage({ params }) {
       (bp) => bp.language === newLang
     );
     if (selectedBoilerPlate) {
-      setCode(selectedBoilerPlate.code);
+      // Extract only the solution part
+      const extractedCode = extractSolutionCode(
+        selectedBoilerPlate.code,
+        newLang
+      );
+      setCode(extractedCode);
     }
     setOutput([]);
   };
@@ -305,6 +329,14 @@ export default function SolvePage({ params }) {
     setOutput([{ type: "log", message: "Submitting solution..." }]);
 
     try {
+      // Combine user's solution code with the boilerplate before submission
+      const originalBoilerplate = originalBoilerplates[language];
+      const fullCode = combineWithBoilerplate(
+        code,
+        originalBoilerplate,
+        language
+      );
+
       const response = await fetch("http://localhost:5000/code/submit", {
         method: "POST",
         headers: {
@@ -312,7 +344,7 @@ export default function SolvePage({ params }) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          code: code,
+          code: fullCode,
           language: language,
           qNumber: questionId,
         }),
@@ -1199,7 +1231,7 @@ export default function SolvePage({ params }) {
           ) : (
             <Editor
               height="100%"
-              language={language}
+              language={getMonacoLanguage(language)}
               theme={isDark ? "vs-dark" : "light"}
               value={code}
               onChange={(value) => setCode(value || "")}
