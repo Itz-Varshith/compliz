@@ -200,7 +200,7 @@ export default function HomePage() {
       <section className="px-4 py-20 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 tracking-wide">
+            <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 tracking-wide break-words">
               <span className="text-orange-500">if</span> (looking_for_excellence) <span className="text-orange-500">{'{'}</span>
             </h3>
           </div>
