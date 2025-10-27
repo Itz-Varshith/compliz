@@ -66,14 +66,12 @@ export default function HomePage() {
           <div className="absolute top-20 left-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-orange-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
           
-          {/* Floating code symbols */}
           <div className="absolute top-1/4 left-10 text-orange-500/5 text-6xl font-bold">&lt;/&gt;</div>
           <div className="absolute bottom-1/4 right-10 text-orange-500/5 text-6xl font-bold">{ }</div>
           <div className="absolute top-1/2 left-1/3 text-orange-500/5 text-4xl font-bold">[ ]</div>
         </div>
 
         <div className="max-w-7xl mx-auto">
-          {/* Logo */}
           <div className="text-center mb-20">
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-widest mb-4">
               <span className="text-orange-500">&gt;_</span>
@@ -88,10 +86,9 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Hero content */}
           <div className="text-center max-w-4xl mx-auto space-y-8">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight tracking-wide">
-              <span className="text-orange-500">//</span> Elevate Your Coding Journey
+              <span className="text-orange-500">{'//'}</span> Elevate Your Coding Journey
             </h2>
             
             <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto tracking-wide">
@@ -99,7 +96,6 @@ export default function HomePage() {
               solve complex problems, and build their skills with confidence.
             </p>
 
-            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
               <Button
                 size="lg"
@@ -124,7 +120,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="px-4 py-20 bg-orange-50/30 border-y-2 border-orange-500/20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -261,20 +256,19 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* Column 2: Navigation Links */}
       <div className="space-y-4">
-        <p className="text-sm text-slate-500 font-semibold tracking-wider">// NAVIGATE</p>
+        <p className="text-sm text-slate-500 font-semibold tracking-wider">{'// NAVIGATE'}</p>
         <nav className="flex flex-col space-y-2">
-          <a href="/" className="hover:text-primary transition-colors duration-200 w-fit">Home</a>
-          <a href="/compiler" className="hover:text-primary transition-colors duration-200 w-fit">Compiler</a>
-          <a href="/problem-set" className="hover:text-primary transition-colors duration-200 w-fit">Problem Set</a>
-          <a href="/profile" className="hover:text-primary transition-colors duration-200 w-fit">My Profile</a>
+          <Link href="/" className="hover:text-primary transition-colors duration-200 w-fit">Home</Link>
+          <Link href="/compiler" className="hover:text-primary transition-colors duration-200 w-fit">Compiler</Link>
+          <Link href="/problem-set" className="hover:text-primary transition-colors duration-200 w-fit">Problem Set</Link>
+          <Link href="/profile" className="hover:text-primary transition-colors duration-200 w-fit">My Profile</Link>
         </nav>
       </div>
 
       {/* Column 3: Connect & Socials */}
       <div className="space-y-4">
-        <p className="text-sm text-slate-500 font-semibold tracking-wider">// CONNECT</p>
+        <p className="text-sm text-slate-500 font-semibold tracking-wider">{'// CONNECT'}</p>
         <div className="flex items-center space-x-4">
           <a href="#" className="text-slate-400 hover:text-primary transition-colors duration-200" aria-label="GitHub">
             <Github className="h-6 w-6" />
@@ -292,7 +286,7 @@ export default function HomePage() {
     <div className="mt-16 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-sm text-slate-500">
       <p>&copy; {new Date().getFullYear()} compliz. All Rights Reserved.</p>
       <div className="flex items-center gap-2 mt-4 sm:mt-0">
-        <span className="font-semibold tracking-wider">// MADE_BY</span>
+        <span className="font-semibold tracking-wider">{'// MADE_BY'}</span>
         <div className="flex items-center gap-2 text-slate-300 font-bold tracking-wide">
           <span className="hover:text-primary transition-colors cursor-default">VARSHITH</span>
           <span className="text-primary">&&</span>
