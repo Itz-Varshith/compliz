@@ -17,6 +17,8 @@ import {
   Loader2,
   Code2,
   RotateCcw,
+  Menu,
+  X as CloseIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -83,8 +85,23 @@ export default function SolvePage({ params }) {
   const [isDraggingVertical, setIsDraggingVertical] = useState(false)
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false)
   
+  // Mobile states
+  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false)
+  const [isMobileView, setIsMobileView] = useState(false)
+  
   const supabase = createClient()
   const { toast } = useToast()
+
+  // Check if mobile view
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobileView(window.innerWidth < 1024)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Resize handlers
   useEffect(() => {
@@ -516,7 +533,7 @@ export default function SolvePage({ params }) {
     }
   }
 
-  const getStatusColor = (status ) => {
+  const getStatusColor = (status) => {
     if ((status === "Accepted" || status?.toLowerCase().includes("accepted"))) {
         return "text-green-600 dark:text-green-400"
     }
@@ -567,7 +584,7 @@ export default function SolvePage({ params }) {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex h-screen items-center justify-center bg-background px-4">
         <div className="text-center">
           <Loader2 size={48} className="mx-auto mb-4 text-primary animate-spin" />
           <h3 className="text-xl font-semibold text-foreground mb-2">Loading question...</h3>
@@ -579,7 +596,7 @@ export default function SolvePage({ params }) {
 
   if (error || !question) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex h-screen items-center justify-center bg-background px-4">
         <div className="text-center max-w-md">
           <XCircle size={48} className="mx-auto mb-4 text-destructive" />
           <h3 className="text-xl font-semibold text-foreground mb-2">Error loading question</h3>
@@ -597,352 +614,342 @@ export default function SolvePage({ params }) {
       ? ((question.accepted_submissions / question.total_submissions) * 100).toFixed(1)
       : "0.0"
 
-  return (
-    <div 
-      id="main-container" 
-      className="flex h-[calc(100vh-4rem)] bg-background overflow-hidden relative"
-    >
-      {/* Left Panel - Problem Description */}
-      <div 
-        className="border-r border-border flex flex-col overflow-hidden"
-        style={{ width: `${leftPanelWidth}%` }}
-      >
-        <div className="flex-1 overflow-auto">
-          <div className="p-6">
-            {/* Problem Header */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <h1 className="text-2xl font-bold text-foreground text-balance">
-                  {question.title || "Untitled Problem"}
-                </h1>
-                {question.difficulty && (
-                  <div
-                    className={`px-2.5 py-1 rounded-md text-xs font-medium border ${getDifficultyColor(
-                      question.difficulty,
-                    )}`}
-                  >
-                    {question.difficulty}
-                  </div>
-                )}
+  // Problem description panel component
+  const ProblemPanel = () => (
+    <div className="h-full overflow-auto">
+      <div className="p-4 sm:p-6">
+        {/* Problem Header */}
+        <div className="mb-6">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground text-balance">
+              {question.title || "Untitled Problem"}
+            </h1>
+            {question.difficulty && (
+              <div
+                className={`px-2.5 py-1 rounded-md text-xs font-medium border whitespace-nowrap ${getDifficultyColor(
+                  question.difficulty,
+                )}`}
+              >
+                {question.difficulty}
               </div>
+            )}
+          </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
-                {question.topics &&
-                  question.topics.length > 0 &&
-                  question.topics.map((topic, idx) => (
-                    <Badge key={idx} variant="outline" className="text-xs">
-                      {topic}
-                    </Badge>
+          <div className="flex items-center gap-2 flex-wrap">
+            {question.topics &&
+              question.topics.length > 0 &&
+              question.topics.map((topic, idx) => (
+                <Badge key={idx} variant="outline" className="text-xs">
+                  {topic}
+                </Badge>
+              ))}
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent overflow-x-auto flex-nowrap">
+            <TabsTrigger
+              value="description"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-sm whitespace-nowrap"
+            >
+              Description
+            </TabsTrigger>
+            <TabsTrigger
+              value="hints"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-sm whitespace-nowrap"
+            >
+              Hints
+            </TabsTrigger>
+            <TabsTrigger
+              value="submissions"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-sm whitespace-nowrap"
+            >
+              Submissions
+            </TabsTrigger>
+            <TabsTrigger
+              value="solutions"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-sm whitespace-nowrap"
+            >
+              Solutions
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="description" className="mt-6 space-y-6">
+            <div>
+              <p className="text-foreground leading-relaxed whitespace-pre-line text-pretty text-sm sm:text-base">
+                {question.description || "No description available"}
+              </p>
+            </div>
+
+            {question.examples && (question.examples.input || question.examples.output) && (
+              <div className="space-y-4">
+                <Card className="p-3 sm:p-4 bg-muted/50 border-muted">
+                  <p className="font-semibold mb-3 text-foreground text-sm sm:text-base">Example:</p>
+                  <div className="space-y-2 font-mono text-xs sm:text-sm">
+                    <div className="bg-background/50 p-2 sm:p-3 rounded-md flex flex-col gap-1">
+                      <span className="font-semibold text-muted-foreground">Input:</span>
+                      <span className="text-foreground whitespace-pre-line break-all">{question.examples.input || "N/A"}</span>
+                    </div>
+                    <div className="bg-background/50 p-2 sm:p-3 rounded-md flex flex-col gap-1">
+                      <span className="font-semibold text-muted-foreground">Output:</span>
+                      <span className="text-foreground whitespace-pre-line break-all">{question.examples.output || "N/A"}</span>
+                    </div>
+                    {question.examples.explanation && question.examples.explanation !== "--" && (
+                      <div className="bg-background/50 p-2 sm:p-3 rounded-md">
+                        <span className="font-semibold text-muted-foreground">Explanation:</span>{" "}
+                        <span className="text-foreground">{question.examples.explanation}</span>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </div>
+            )}
+
+            {question.constraints && question.constraints.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3 text-foreground text-sm sm:text-base">Constraints:</h3>
+                <ul className="space-y-2 font-mono text-xs sm:text-sm">
+                  {question.constraints.map((constraint, idx) => (
+                    <li key={idx} className="text-muted-foreground break-all">
+                      • {constraint}
+                    </li>
                   ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-4 border-t border-border">
+              <div className="bg-muted/30 p-3 sm:p-4 rounded-lg">
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Time Limit</p>
+                <p className="text-base sm:text-lg font-semibold text-foreground">{question.timeLimit} s</p>
+              </div>
+              <div className="bg-muted/30 p-3 sm:p-4 rounded-lg">
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Memory Limit</p>
+                <p className="text-base sm:text-lg font-semibold text-foreground">{question.memoryLimit} MB</p>
               </div>
             </div>
 
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
-                <TabsTrigger
-                  value="description"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                >
-                  Description
-                </TabsTrigger>
-                <TabsTrigger
-                  value="hints"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                >
-                  Hints
-                </TabsTrigger>
-                <TabsTrigger
-                  value="submissions"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                >
-                  Submissions
-                </TabsTrigger>
-                <TabsTrigger
-                  value="solutions"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                >
-                  Solutions
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="description" className="mt-6 space-y-6">
-                <div>
-                  <p className="text-foreground leading-relaxed whitespace-pre-line text-pretty">
-                    {question.description || "No description available"}
-                  </p>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-4 border-t border-border">
+              <div className="bg-muted/30 p-3 sm:p-4 rounded-lg">
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Accepted</p>
+                <p className="text-base sm:text-lg font-semibold text-foreground">
+                  {question.accepted_submissions.toLocaleString()}
+                </p>
+              </div>
+              <div className="bg-muted/30 p-3 sm:p-4 rounded-lg">
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Submissions</p>
+                <p className="text-base sm:text-lg font-semibold text-foreground">
+                  {question.total_submissions.toLocaleString()}
+                </p>
+              </div>
+              <div className="col-span-2 bg-muted/30 p-3 sm:p-4 rounded-lg">
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Acceptance Rate</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-base sm:text-lg font-semibold text-foreground">{acceptanceRate}%</p>
+                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
                 </div>
+              </div>
+            </div>
+          </TabsContent>
 
-                {question.examples && (question.examples.input || question.examples.output) && (
-                  <div className="space-y-4">
-                    <Card className="p-4 bg-muted/50 border-muted">
-                      <p className="font-semibold mb-3 text-foreground">Example:</p>
-                      <div className="space-y-2 font-mono text-sm">
-                        <div className="bg-background/50 p-3 rounded-md flex flex-col gap-1">
-                          <span className="font-semibold text-muted-foreground">Input:</span>
-                          <span className="text-foreground whitespace-pre-line">{question.examples.input || "N/A"}</span>
+          <TabsContent value="hints" className="mt-6">
+            <div className="space-y-3">
+              {!question.hints || question.hints.length === 0 ? (
+                <Card className="p-6 sm:p-8 text-center border-dashed">
+                  <Lightbulb className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+                  <p className="text-muted-foreground text-sm sm:text-base">No hints available for this problem</p>
+                </Card>
+              ) : (
+                question.hints.map((hint, idx) => (
+                  <Collapsible key={idx}>
+                    <Card className="overflow-hidden border-muted">
+                      <CollapsibleTrigger className="w-full p-3 sm:p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <Lightbulb className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                          <span className="font-semibold text-foreground text-sm sm:text-base">Hint {idx + 1}</span>
                         </div>
-                        <div className="bg-background/50 p-3 rounded-md flex flex-col gap-1">
-                          <span className="font-semibold text-muted-foreground">Output:</span>
-                          <span className="text-foreground whitespace-pre-line">{question.examples.output || "N/A"}</span>
+                        <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="p-3 sm:p-4 pt-0 border-t bg-muted/30">
+                          <p className="text-sm sm:text-base text-foreground leading-relaxed">{hint}</p>
                         </div>
-                        {question.examples.explanation && question.examples.explanation !== "--" && (
-                          <div className="bg-background/50 p-3 rounded-md">
-                            <span className="font-semibold text-muted-foreground">Explanation:</span>{" "}
-                            <span className="text-foreground">{question.examples.explanation}</span>
-                          </div>
-                        )}
-                      </div>
+                      </CollapsibleContent>
                     </Card>
-                  </div>
-                )}
+                  </Collapsible>
+                ))
+              )}
+            </div>
+          </TabsContent>
 
-                {question.constraints && question.constraints.length > 0 && (
+          <TabsContent value="submissions" className="mt-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-foreground text-sm sm:text-base">Your Submissions</h3>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={fetchSubmissions}
+                disabled={isSubmissionsLoading}
+                className="gap-2 bg-transparent"
+                title="Refresh submissions"
+              >
+                <RotateCcw className={`h-4 w-4 ${isSubmissionsLoading ? "animate-spin" : ""}`} />
+                <span className="hidden sm:inline">Refresh</span>
+              </Button>
+            </div>
+
+            {isSubmissionsLoading ? (
+              <div className="space-y-3">
+                <Card className="p-4 border-muted animate-pulse" />
+                <Card className="p-4 border-muted animate-pulse" />
+                <Card className="p-4 border-muted animate-pulse" />
+              </div>
+            ) : submissionsError ? (
+              <Card className="p-4 border-destructive/40 bg-destructive/5">
+                <div className="flex items-start gap-2">
+                  <XCircle className="h-5 w-5 text-destructive mt-0.5" />
                   <div>
-                    <h3 className="font-semibold mb-3 text-foreground">Constraints:</h3>
-                    <ul className="space-y-2 font-mono text-sm">
-                      {question.constraints.map((constraint, idx) => (
-                        <li key={idx} className="text-muted-foreground">
-                          • {constraint}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
-                  <div className="bg-muted/30 p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Time Limit</p>
-                    <p className="text-lg font-semibold text-foreground">{question.timeLimit} s</p>
-                  </div>
-                  <div className="bg-muted/30 p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Memory Limit</p>
-                    <p className="text-lg font-semibold text-foreground">{question.memoryLimit} MB</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
-                  <div className="bg-muted/30 p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Accepted</p>
-                    <p className="text-lg font-semibold text-foreground">
-                      {question.accepted_submissions.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="bg-muted/30 p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Submissions</p>
-                    <p className="text-lg font-semibold text-foreground">
-                      {question.total_submissions.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="col-span-2 bg-muted/30 p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Acceptance Rate</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-lg font-semibold text-foreground">{acceptanceRate}%</p>
-                      <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="hints" className="mt-6">
-                <div className="space-y-3">
-                  {!question.hints || question.hints.length === 0 ? (
-                    <Card className="p-8 text-center border-dashed">
-                      <Lightbulb className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                      <p className="text-muted-foreground">No hints available for this problem</p>
-                    </Card>
-                  ) : (
-                    question.hints.map((hint, idx) => (
-                      <Collapsible key={idx}>
-                        <Card className="overflow-hidden border-muted">
-                          <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                            <div className="flex items-center gap-2">
-                              <Lightbulb className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                              <span className="font-semibold text-foreground">Hint {idx + 1}</span>
-                            </div>
-                            <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180 text-muted-foreground" />
-                          </CollapsibleTrigger>
-                          <CollapsibleContent>
-                            <div className="p-4 pt-0 border-t bg-muted/30">
-                              <p className="text-base text-foreground leading-relaxed">{hint}</p>
-                            </div>
-                          </CollapsibleContent>
-                        </Card>
-                      </Collapsible>
-                    ))
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="submissions" className="mt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-foreground">Your Submissions</h3>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={fetchSubmissions}
-                    disabled={isSubmissionsLoading}
-                    className="gap-2bg-transparent"
-                    title="Refresh submissions"
-                  >
-                    <RotateCcw className={`h-4 w-4 ${isSubmissionsLoading ? "animate-spin" : ""}`} />
-                    Refresh
-                  </Button>
-                </div>
-
-                {isSubmissionsLoading ? (
-                  <div className="space-y-3">
-                    <Card className="p-4 border-muted animate-pulse" />
-                    <Card className="p-4 border-muted animate-pulse" />
-                    <Card className="p-4 border-muted animate-pulse" />
-                  </div>
-                ) : submissionsError ? (
-                  <Card className="p-4 border-destructive/40 bg-destructive/5">
-                    <div className="flex items-start gap-2">
-                      <XCircle className="h-5 w-5 text-destructive mt-0.5" />
-                      <div>
-                        <p className="font-medium text-destructive">Failed to load submissions</p>
-                        <p className="text-sm text-muted-foreground">{submissionsError}</p>
-                        <div className="mt-3">
-                          <Button size="sm" onClick={fetchSubmissions}>
-                            Retry
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ) : !submissions || submissions.length === 0 ? (
-                  <Card className="p-8 text-center border-dashed">
-                    <Terminal className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                    <p className="text-muted-foreground mb-1">No submissions yet</p>
-                    <p className="text-sm text-muted-foreground">Submit your solution to see it here</p>
-                  </Card>
-                ) : (
-                  <div className="space-y-3">
-                  {[...submissions]
-                  .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                  .map((submission) => {
-                    // ... the rest of your mapping logic remains the same
-                    const formattedDate = new Date(submission.timestamp).toLocaleString("en-IN", {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true
-                    });
-
-
-                    return (
-                      <Card
-                        key={submission.id}
-                        className="p-4 hover:bg-muted/50 transition-colors cursor-pointer border-muted"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={getStatusColor(submission.status)}>
-                              {getStatusIcon(submission.status)}
-                            </div>
-                            <div>
-                              <p className={`font-semibold ${getStatusColor(submission.status)}`}>
-                                {submission.status}
-                              </p>
-                              <p className="text-sm text-muted-foreground">{formattedDate}</p>
-                            </div>
-                          </div>
-                          <div className="text-right text-sm">
-                            <p className="text-muted-foreground font-medium">{submission.language}</p>
-                            {submission.runtime !== "N/A" && (
-                              <p className="text-muted-foreground">
-                                {submission.runtime} • {submission.memory}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </Card>
-                      );
-                  })}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="solutions" className="mt-6">
-                {!solutionCode || solutionCode.trim() === "" ? (
-                  <Card className="p-8 text-center border-dashed">
-                    <Code2 className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                    <p className="text-muted-foreground mb-2">No solution available yet</p>
-                    <p className="text-sm text-muted-foreground">
-                      Solutions will be available after you solve this problem
-                    </p>
-                  </Card>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Code2 className="h-5 w-5 text-primary" />
-                        <h3 className="font-semibold text-foreground">Official Solution</h3>
-                      </div>
-                      <Button
-                        onClick={() => navigator.clipboard.writeText(solutionCode)}
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                      >
-                        <Copy size={14} />
-                        Copy
+                    <p className="font-medium text-destructive text-sm sm:text-base">Failed to load submissions</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{submissionsError}</p>
+                    <div className="mt-3">
+                      <Button size="sm" onClick={fetchSubmissions}>
+                        Retry
                       </Button>
                     </div>
-                    <Card className="overflow-hidden border-muted">
-                      <div className="bg-muted/30 px-4 py-2 border-b border-border">
-                        <p className="text-sm text-muted-foreground font-medium">Solution Code</p>
-                      </div>
-                      <div className="h-[500px]">
-                        <Editor
-                          height="100%"
-                          language="cpp"
-                          theme={isDark ? "vs-dark" : "light"}
-                          value={solutionCode}
-                          options={{
-                            readOnly: true,
-                            fontSize: 14,
-                            minimap: { enabled: false },
-                            scrollBeyondLastLine: false,
-                            lineNumbers: "on",
-                            roundedSelection: false,
-                            padding: { top: 16, bottom: 16 },
-                          }}
-                        />
-                      </div>
-                    </Card>
                   </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
-      </div>
+                </div>
+              </Card>
+            ) : !submissions || submissions.length === 0 ? (
+              <Card className="p-6 sm:p-8 text-center border-dashed">
+                <Terminal className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+                <p className="text-muted-foreground mb-1 text-sm sm:text-base">No submissions yet</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Submit your solution to see it here</p>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+              {[...submissions]
+              .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+              .map((submission) => {
+                const formattedDate = new Date(submission.timestamp).toLocaleString("en-IN", {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                });
 
-      {/* Vertical Resize Handle */}
-      <div
-        className="w-1 bg-border hover:bg-primary hover:w-1.5 cursor-col-resize transition-all duration-150 relative group flex-shrink-0"
-        onMouseDown={() => setIsDraggingVertical(true)}
-      >
-        <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-primary/10" />
-      </div>
+                return (
+                  <Card
+                    key={submission.id}
+                    className="p-3 sm:p-4 hover:bg-muted/50 transition-colors cursor-pointer border-muted"
+                  >
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className={getStatusColor(submission.status)}>
+                          {getStatusIcon(submission.status)}
+                        </div>
+                        <div>
+                          <p className={`font-semibold text-sm sm:text-base ${getStatusColor(submission.status)}`}>
+                            {submission.status}
+                          </p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{formattedDate}</p>
+                        </div>
+                      </div>
+                      <div className="text-left sm:text-right text-xs sm:text-sm ml-9 sm:ml-0">
+                        <p className="text-muted-foreground font-medium">{submission.language}</p>
+                        {submission.runtime !== "N/A" && (
+                          <p className="text-muted-foreground">
+                            {submission.runtime} • {submission.memory}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                  );
+              })}
+              </div>
+            )}
+          </TabsContent>
 
-      {/* Right Panel - Code Editor */}
-      <div 
-        id="right-panel"
-        className="flex flex-col bg-background overflow-hidden"
-        style={{ width: `${100 - leftPanelWidth}%` }}
-      >
-        {/* Top Bar */}
-        <div className="bg-muted/30 px-4 py-3 flex items-center justify-between border-b border-border shrink-0">
-          <div className="flex items-center gap-4">
+          <TabsContent value="solutions" className="mt-6">
+            {!solutionCode || solutionCode.trim() === "" ? (
+              <Card className="p-6 sm:p-8 text-center border-dashed">
+                <Code2 className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+                <p className="text-muted-foreground mb-2 text-sm sm:text-base">No solution available yet</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Solutions will be available after you solve this problem
+                </p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Code2 className="h-5 w-5 text-primary" />
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base">Official Solution</h3>
+                  </div>
+                  <Button
+                    onClick={() => navigator.clipboard.writeText(solutionCode)}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Copy size={14} />
+                    <span className="hidden sm:inline">Copy</span>
+                  </Button>
+                </div>
+                <Card className="overflow-hidden border-muted">
+                  <div className="bg-muted/30 px-3 sm:px-4 py-2 border-b border-border">
+                    <p className="text-xs sm:text-sm text-muted-foreground font-medium">Solution Code</p>
+                  </div>
+                  <div className="h-[400px] sm:h-[500px]">
+                    <Editor
+                      height="100%"
+                      language="cpp"
+                      theme={isDark ? "vs-dark" : "light"}
+                      value={solutionCode}
+                      options={{
+                        readOnly: true,
+                        fontSize: 14,
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false,
+                        lineNumbers: "on",
+                        roundedSelection: false,
+                        padding: { top: 16, bottom: 16 },
+                      }}
+                    />
+                  </div>
+                </Card>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-background overflow-hidden">
+      {/* Mobile: Stacked Layout */}
+      <div className="lg:hidden flex flex-col h-full">
+        {/* Mobile Header with Toggle */}
+        <div className="bg-muted/30 px-3 py-2 flex items-center justify-between border-b border-border shrink-0">
+          <Button
+            onClick={() => setIsMobilePanelOpen(!isMobilePanelOpen)}
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+          >
+            {isMobilePanelOpen ? <CloseIcon size={16} /> : <Menu size={16} />}
+            <span className="text-sm">{isMobilePanelOpen ? 'Close' : 'Problem'}</span>
+          </Button>
+          
+          <div className="flex gap-1">
             <select
               value={language}
               onChange={(e) => handleLanguageChange(e.target.value)}
-              className="bg-background text-foreground px-4 py-2 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
+              className="bg-background text-foreground px-2 py-1 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-primary text-xs font-medium"
             >
               {languageOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -950,18 +957,44 @@ export default function SolvePage({ params }) {
                 </option>
               ))}
             </select>
+            
+            <Button onClick={() => setIsDark(!isDark)} variant="outline" size="sm">
+              <SunIcon size={14} />
+            </Button>
+          </div>
+        </div>
 
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-md border border-border">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="font-mono text-sm font-medium text-foreground">{formatTime(time)}</span>
+        {/* Mobile Problem Panel (Overlay) */}
+        {isMobilePanelOpen && (
+          <div className="absolute inset-0 bg-background z-50 overflow-auto">
+            <div className="sticky top-0 bg-muted/30 px-3 py-2 flex items-center justify-between border-b border-border">
+              <h2 className="font-semibold text-foreground text-sm">Problem Details</h2>
+              <Button
+                onClick={() => setIsMobilePanelOpen(false)}
+                variant="ghost"
+                size="sm"
+              >
+                <CloseIcon size={16} />
+              </Button>
+            </div>
+            <ProblemPanel />
+          </div>
+        )}
+
+        {/* Mobile Editor Section */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Timer Bar */}
+          <div className="bg-muted/20 px-3 py-2 flex items-center justify-between border-b border-border shrink-0">
+            <div className="flex items-center gap-2 px-2 py-1 bg-background rounded-md border border-border">
+              <Clock className="h-3 w-3 text-muted-foreground" />
+              <span className="font-mono text-xs font-medium text-foreground">{formatTime(time)}</span>
               <Button
                 onClick={() => setIsTimerRunning(!isTimerRunning)}
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 ml-1"
-                title={isTimerRunning ? "Pause timer" : "Start timer"}
+                className="h-5 w-5"
               >
-                {isTimerRunning ? <Pause size={14} /> : <Play size={14} />}
+                {isTimerRunning ? <Pause size={12} /> : <Play size={12} />}
               </Button>
               <Button
                 onClick={() => {
@@ -970,274 +1003,513 @@ export default function SolvePage({ params }) {
                 }}
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6"
-                title="Reset timer"
+                className="h-5 w-5"
               >
-                <RotateCcw size={14} />
+                <RotateCcw size={12} />
+              </Button>
+            </div>
+
+            <div className="flex gap-1">
+              <Button
+                onClick={runCode}
+                variant="secondary"
+                size="sm"
+                className="gap-1 h-7 px-2 text-xs"
+              >
+                <Play size={12} />
+                Run
+              </Button>
+              <Button
+                onClick={submitCode}
+                disabled={isSubmitting || !isAuthenticated}
+                size="sm"
+                className="gap-1 h-7 px-2 text-xs bg-green-600 hover:bg-green-700 text-white"
+              >
+                {isSubmitting ? <Loader2 size={12} className="animate-spin" /> : "Submit"}
               </Button>
             </div>
           </div>
 
-          <div className="flex gap-2 relative">
-            <Button
-              onClick={runCode}
-              variant="secondary"
-              size="sm"
-              className="gap-2"
-              title="Run locally against sample tests"
-            >
-              <Play size={16} />
-              <span className="hidden sm:inline">Run</span>
-            </Button>
-
-            <Button onClick={copyCode} variant="outline" size="sm" className="gap-2 bg-transparent">
-              <Copy size={16} />
-              <span className="hidden sm:inline">Copy</span>
-            </Button>
-            <Button onClick={() => setIsDark(!isDark)} variant="outline" size="sm" className="gap-2">
-              <SunIcon size={16} />
-            </Button>
-
-            <Button
-              onClick={submitCode}
-              disabled={isSubmitting || !isAuthenticated}
-              size="sm"
-              className="gap-2 bg-green-600 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              title={!isAuthenticated ? "Please log in to submit" : "Submit your solution"}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                "Submit"
-              )}
-            </Button>
-
-            {showSubmissionSuccess && (
-              <div className="absolute -bottom-12 right-0 bg-green-600 text-white px-4 py-2 rounded-md shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2 z-50">
-                <CheckCircle2 className="h-4 w-4" />
-                <span className="text-sm font-medium">Submission Successful!</span>
-              </div>
-            )}
+          {/* Mobile Editor */}
+          <div className="flex-1 min-h-0">
+            <Editor
+              height="100%"
+              language={language}
+              theme={isDark ? "vs-dark" : "light"}
+              value={code}
+              onChange={(value) => setCode(value || "")}
+              onMount={handleEditorDidMount}
+              options={{
+                fontSize: 12,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                lineNumbers: "on",
+                roundedSelection: false,
+                padding: { top: 12, bottom: 12 },
+              }}
+            />
           </div>
-        </div>
 
-        {/* Monaco Editor */}
-        <div 
-          className="overflow-hidden relative"
-          style={{ height: `${100 - consoleHeight}%` }}
-        >
-          <Editor
-            height="100%"
-            language={language}
-            theme={isDark ? "vs-dark" : "light"}
-            value={code}
-            onChange={(value) => setCode(value || "")}
-            onMount={handleEditorDidMount}
-            options={{
-              fontSize: 14,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-              lineNumbers: "on",
-              roundedSelection: false,
-              padding: { top: 16, bottom: 16 },
-            }}
-          />
-        </div>
+          {/* Mobile Console */}
+          <div className="border-t border-border bg-background shrink-0" style={{ height: '35%' }}>
+            <Tabs defaultValue="result" className="h-full flex flex-col">
+              <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-muted/30 px-3 shrink-0">
+                <TabsTrigger
+                  value="result"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 text-xs"
+                >
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Result
+                </TabsTrigger>
+                <TabsTrigger
+                  value="log"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 text-xs"
+                >
+                  <Terminal className="h-3 w-3 mr-1" />
+                  Log
+                </TabsTrigger>
+              </TabsList>
 
-        {/* Horizontal Resize Handle */}
-        <div
-          className="h-1 bg-border hover:bg-primary hover:h-1.5 cursor-row-resize transition-all duration-150 relative group flex-shrink-0"
-          onMouseDown={() => setIsDraggingHorizontal(true)}
-        >
-          <div className="absolute inset-x-0 -top-1 -bottom-1 group-hover:bg-primary/10" />
-        </div>
-
-        {/* Console/Output Section */}
-        <div 
-          className="border-t border-border flex flex-col bg-background shrink-0 overflow-hidden"
-          style={{ height: `${consoleHeight}%` }}
-        >
-          <Tabs defaultValue="result" className="flex-1 flex flex-col min-h-0">
-            <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-muted/30 px-4 shrink-0">
-              <TabsTrigger
-                value="result"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-              >
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Result
-              </TabsTrigger>
-              <TabsTrigger
-                value="log"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-              >
-                <Terminal className="h-4 w-4 mr-2" />
-                Execution Log
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="result" className="flex-1 p-4 overflow-auto min-h-0">
-              {isSubmitting ? (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                  <Loader2 size={48} className="mb-3 opacity-50 animate-spin" />
-                  <p className="text-sm font-medium">Evaluating your submission...</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">Please wait</p>
-                </div>
-              ) : !output || output.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                  <Terminal size={48} className="mb-3 opacity-30" />
-                  <p className="text-sm font-medium">No results yet</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">Run or Submit code to see results</p>
-                </div>
-              ) : (
-                (() => {
-                  const parsed = parseOutput(output)
-                  const getResultStyle = (status, hasError, isAccepted) => {
-                    if (hasError) {
+              <TabsContent value="result" className="flex-1 p-3 overflow-auto min-h-0 text-xs">
+                {isSubmitting ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <Loader2 size={32} className="mb-2 opacity-50 animate-spin" />
+                    <p className="text-xs font-medium">Evaluating...</p>
+                  </div>
+                ) : !output || output.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <Terminal size={32} className="mb-2 opacity-30" />
+                    <p className="text-xs font-medium">No results yet</p>
+                  </div>
+                ) : (
+                  (() => {
+                    const parsed = parseOutput(output)
+                    const getResultStyle = (status, hasError, isAccepted) => {
+                      if (hasError) {
+                        return {
+                          bg: "bg-red-100 dark:bg-red-950/30",
+                          text: "text-red-600 dark:text-red-400",
+                          icon: XCircle,
+                        }
+                      }
+                      if (isAccepted) {
+                        return {
+                          bg: "bg-green-100 dark:bg-green-950/30",
+                          text: "text-green-600 dark:text-green-400",
+                          icon: CheckCircle2,
+                        }
+                      }
                       return {
                         bg: "bg-red-100 dark:bg-red-950/30",
                         text: "text-red-600 dark:text-red-400",
                         icon: XCircle,
                       }
                     }
-                    if (isAccepted) {
-                      return {
-                        bg: "bg-green-100 dark:bg-green-950/30",
-                        text: "text-green-600 dark:text-green-400",
-                        icon: CheckCircle2,
-                      }
-                    }
-                    if (status === "Time Limit Exceeded") {
-                      return {
-                        bg: "bg-yellow-100 dark:bg-yellow-950/30",
-                        text: "text-yellow-600 dark:text-yellow-400",
-                        icon: Clock,
-                      }
-                    } else {
-                      return {
-                        bg: "bg-red-100 dark:bg-red-950/30",
-                        text: "text-red-600 dark:text-red-400",
-                        icon: XCircle,
-                      }
-                    }
-                  }
-                  const style = getResultStyle(parsed.statusText, parsed.hasError, parsed.isAccepted)
-                  let subText = parsed.hasError ? "Check execution log for details"
-                    : parsed.isAccepted ? "All test cases passed"
-                    : parsed.statusText === "Time Limit Exceeded" ? "Execution took too long - optimize your code"
-                    : parsed.statusText.includes("Error") ? "Fix the errors in your code"
-                    : "Some test cases failed - check log for details"
+                    const style = getResultStyle(parsed.statusText, parsed.hasError, parsed.isAccepted)
 
-                  return (
-                    <div className="space-y-4 h-full">
-                      <div className="flex items-center justify-between pb-3 border-b border-border">
-                        <div className="flex items-center gap-3">
-                          <div className={`h-10 w-10 rounded-full ${style.bg} flex items-center justify-center`}>
-                            <style.icon className="h-5 w-5" />
+                    return (
+                      <div className="space-y-3 h-full">
+                        <div className="flex items-center gap-2 pb-2 border-b border-border">
+                          <div className={`h-8 w-8 rounded-full ${style.bg} flex items-center justify-center shrink-0`}>
+                            <style.icon className="h-4 w-4" />
                           </div>
                           <div>
-                            <p className={`text-lg font-bold ${style.text}`}>
+                            <p className={`text-sm font-bold ${style.text}`}>
                               {parsed.statusText}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              {subText}
-                            </p>
                           </div>
                         </div>
-                      </div>
 
-                      {parsed.metrics.length > 0 && (
-                        <div className="grid grid-cols-3 gap-3">
-                          {parsed.metrics.map((m, i) => (
-                            <div
-                              key={i}
-                              className="bg-gradient-to-br from-muted/50 to-muted/30 p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
-                            >
-                              <p className="text-xs text-muted-foreground mb-1 font-medium">{m.label}</p>
-                              <p className="text-lg font-bold text-foreground">{m.value}</p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })()
-              )}
-            </TabsContent>
-
-            <TabsContent value="log" className="flex-1 p-4 overflow-auto font-mono text-sm min-h-0">
-              {!output || output.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                  <Terminal size={48} className="mb-3 opacity-30" />
-                  <p className="text-sm font-medium">No logs yet</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">Run or Submit to generate execution logs</p>
-                </div>
-              ) : (
-                (() => {
-                  const parsed = parseOutput(output)
-                  const logs = parsed.logData
-
-                  return (
-                    <div className="space-y-2">
-                      {logs.map((entry, index) => {
-                        if (entry.type === "output") {
-                          return (
-                            <div key={index} className="space-y-2">
-                              <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">
-                                Program Output
-                              </p>
-                              <div className="bg-background border border-border rounded-md p-3">
-                                <pre className="text-foreground whitespace-pre-wrap text-sm">{entry.message}</pre>
+                        {parsed.metrics.length > 0 && (
+                          <div className="grid grid-cols-2 gap-2">
+                            {parsed.metrics.map((m, i) => (
+                              <div
+                                key={i}
+                                className="bg-gradient-to-br from-muted/50 to-muted/30 p-2 rounded-lg border border-border/50"
+                              >
+                                <p className="text-[10px] text-muted-foreground mb-0.5 font-medium">{m.label}</p>
+                                <p className="text-xs font-bold text-foreground">{m.value}</p>
                               </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()
+                )}
+              </TabsContent>
+
+              <TabsContent value="log" className="flex-1 p-3 overflow-auto font-mono text-[11px] min-h-0">
+                {!output || output.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <Terminal size={32} className="mb-2 opacity-30" />
+                    <p className="text-xs font-medium">No logs yet</p>
+                  </div>
+                ) : (
+                  (() => {
+                    const parsed = parseOutput(output)
+                    const logs = parsed.logData
+
+                    return (
+                      <div className="space-y-1.5">
+                        {logs.map((entry, index) => {
+                          if (entry.type === "output") {
+                            return (
+                              <div key={index} className="space-y-1">
+                                <p className="text-[10px] text-muted-foreground font-semibold uppercase">
+                                  Output
+                                </p>
+                                <div className="bg-background border border-border rounded-md p-2">
+                                  <pre className="text-foreground whitespace-pre-wrap text-[11px]">{entry.message}</pre>
+                                </div>
+                              </div>
+                            )
+                          }
+
+                          const base = "p-2 rounded-md border flex items-start gap-2"
+                          let tone = "border-border/50 bg-muted/30"
+                          let Icon = Terminal
+
+                          if (entry.type === "error") {
+                            tone = "border-red-500/30 bg-red-50/50 dark:bg-red-950/20"
+                            Icon = XCircle
+                          } else if (entry.type === "success") {
+                            tone = "border-green-500/30 bg-green-50/50 dark:bg-green-950/20"
+                            Icon = CheckCircle2
+                          } else if (entry.type === "metric") {
+                            tone = "border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20"
+                            Icon = Clock
+                          }
+
+                          return (
+                            <div key={index} className={`${base} ${tone}`}>
+                              <Icon className="h-3 w-3 mt-0.5 shrink-0" />
+                              <span className="whitespace-pre-wrap flex-1 break-all">{entry.message}</span>
                             </div>
                           )
-                        }
-
-                        const base = "p-3 rounded-md border flex items-start gap-2.5"
-                        let tone = "border-border/50 bg-muted/30"
-                        let Icon = Terminal
-
-                        if (entry.type === "error") {
-                          tone = "border-red-500/30 bg-red-50/50 dark:bg-red-950/20"
-                          Icon = XCircle
-                        } else if (entry.type === "success") {
-                          tone = "border-green-500/30 bg-green-50/50 dark:bg-green-950/20"
-                          Icon = CheckCircle2
-                        } else if (entry.type === "metric") {
-                          tone = "border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20"
-                          Icon = Clock
-                        } else if (entry.type === "info") {
-                          tone = "border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20"
-                          Icon = Terminal
-                        }
-
-                        return (
-                          <div key={index} className={`${base} ${tone}`}>
-                            <Icon className="h-4 w-4 mt-0.5 shrink-0" />
-                            <span className="whitespace-pre-wrap flex-1">{entry.message}</span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )
-                })()
-              )}
-            </TabsContent>
-          </Tabs>
+                        })}
+                      </div>
+                    )
+                  })()
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
 
-      {/* Mobile Responsive Overlay */}
-      <div className="lg:hidden absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-        <Card className="p-6 max-w-md text-center">
-          <Terminal className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">Desktop Required</h3>
-          <p className="text-muted-foreground text-sm">
-            This code editor works best on larger screens. Please use a desktop or tablet device for the optimal experience.
-          </p>
-        </Card>
+      {/* Desktop: Side-by-side Layout */}
+      <div 
+        id="main-container" 
+        className="hidden lg:flex h-full overflow-hidden relative"
+      >
+        {/* Left Panel - Problem Description */}
+        <div 
+          className="border-r border-border flex flex-col overflow-hidden"
+          style={{ width: `${leftPanelWidth}%` }}
+        >
+          <ProblemPanel />
+        </div>
+
+        {/* Vertical Resize Handle */}
+        <div
+          className="w-1 bg-border hover:bg-primary hover:w-1.5 cursor-col-resize transition-all duration-150 relative group flex-shrink-0"
+          onMouseDown={() => setIsDraggingVertical(true)}
+        >
+          <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-primary/10" />
+        </div>
+
+        {/* Right Panel - Code Editor */}
+        <div 
+          id="right-panel"
+          className="flex flex-col bg-background overflow-hidden"
+          style={{ width: `${100 - leftPanelWidth}%` }}
+        >
+          {/* Top Bar */}
+          <div className="bg-muted/30 px-4 py-3 flex items-center justify-between border-b border-border shrink-0">
+            <div className="flex items-center gap-4">
+              <select
+                value={language}
+                onChange={(e) => handleLanguageChange(e.target.value)}
+                className="bg-background text-foreground px-4 py-2 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm font-medium"
+              >
+                {languageOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-md border border-border">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="font-mono text-sm font-medium text-foreground">{formatTime(time)}</span>
+                <Button
+                  onClick={() => setIsTimerRunning(!isTimerRunning)}
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 ml-1"
+                  title={isTimerRunning ? "Pause timer" : "Start timer"}
+                >
+                  {isTimerRunning ? <Pause size={14} /> : <Play size={14} />}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setTime(0)
+                    setIsTimerRunning(false)
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  title="Reset timer"
+                >
+                  <RotateCcw size={14} />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex gap-2 relative">
+              <Button
+                onClick={runCode}
+                variant="secondary"
+                size="sm"
+                className="gap-2"
+                title="Run locally against sample tests"
+              >
+                <Play size={16} />
+                <span className="hidden xl:inline">Run</span>
+              </Button>
+
+              <Button onClick={copyCode} variant="outline" size="sm" className="gap-2 bg-transparent">
+                <Copy size={16} />
+                <span className="hidden xl:inline">Copy</span>
+              </Button>
+              <Button onClick={() => setIsDark(!isDark)} variant="outline" size="sm" className="gap-2">
+                <SunIcon size={16} />
+              </Button>
+
+              <Button
+                onClick={submitCode}
+                disabled={isSubmitting || !isAuthenticated}
+                size="sm"
+                className="gap-2 bg-green-600 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                title={!isAuthenticated ? "Please log in to submit" : "Submit your solution"}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span className="hidden xl:inline">Submitting...</span>
+                  </>
+                ) : (
+                  "Submit"
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Monaco Editor */}
+          <div 
+            className="overflow-hidden relative"
+            style={{ height: `${100 - consoleHeight}%` }}
+          >
+            <Editor
+              height="100%"
+              language={language}
+              theme={isDark ? "vs-dark" : "light"}
+              value={code}
+              onChange={(value) => setCode(value || "")}
+              onMount={handleEditorDidMount}
+              options={{
+                fontSize: 14,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                lineNumbers: "on",
+                roundedSelection: false,
+                padding: { top: 16, bottom: 16 },
+              }}
+            />
+          </div>
+
+          {/* Horizontal Resize Handle */}
+          <div
+            className="h-1 bg-border hover:bg-primary hover:h-1.5 cursor-row-resize transition-all duration-150 relative group flex-shrink-0"
+            onMouseDown={() => setIsDraggingHorizontal(true)}
+          >
+            <div className="absolute inset-x-0 -top-1 -bottom-1 group-hover:bg-primary/10" />
+          </div>
+
+          {/* Console/Output Section */}
+          <div 
+            className="border-t border-border flex flex-col bg-background shrink-0 overflow-hidden"
+            style={{ height: `${consoleHeight}%` }}
+          >
+            <Tabs defaultValue="result" className="flex-1 flex flex-col min-h-0">
+              <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-muted/30 px-4 shrink-0">
+                <TabsTrigger
+                  value="result"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Result
+                </TabsTrigger>
+                <TabsTrigger
+                  value="log"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                >
+                  <Terminal className="h-4 w-4 mr-2" />
+                  Execution Log
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="result" className="flex-1 p-4 overflow-auto min-h-0">
+                {isSubmitting ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <Loader2 size={48} className="mb-3 opacity-50 animate-spin" />
+                    <p className="text-sm font-medium">Evaluating your submission...</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">Please wait</p>
+                  </div>
+                ) : !output || output.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <Terminal size={48} className="mb-3 opacity-30" />
+                    <p className="text-sm font-medium">No results yet</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">Run or Submit code to see results</p>
+                  </div>
+                ) : (
+                  (() => {
+                    const parsed = parseOutput(output)
+                    const getResultStyle = (status, hasError, isAccepted) => {
+                      if (hasError) {
+                        return {
+                          bg: "bg-red-100 dark:bg-red-950/30",
+                          text: "text-red-600 dark:text-red-400",
+                          icon: XCircle,
+                        }
+                      }
+                      if (isAccepted) {
+                        return {
+                          bg: "bg-green-100 dark:bg-green-950/30",
+                          text: "text-green-600 dark:text-green-400",
+                          icon: CheckCircle2,
+                        }
+                      }
+                      if (status === "Time Limit Exceeded") {
+                        return {
+                          bg: "bg-yellow-100 dark:bg-yellow-950/30",
+                          text: "text-yellow-600 dark:text-yellow-400",
+                          icon: Clock,
+                        }
+                      } else {
+                        return {
+                          bg: "bg-red-100 dark:bg-red-950/30",
+                          text: "text-red-600 dark:text-red-400",
+                          icon: XCircle,
+                        }
+                      }
+                    }
+                    const style = getResultStyle(parsed.statusText, parsed.hasError, parsed.isAccepted)
+                    let subText = parsed.hasError ? "Check execution log for details"
+                      : parsed.isAccepted ? "All test cases passed"
+                      : parsed.statusText === "Time Limit Exceeded" ? "Execution took too long - optimize your code"
+                      : parsed.statusText.includes("Error") ? "Fix the errors in your code"
+                      : "Some test cases failed - check log for details"
+
+                    return (
+                      <div className="space-y-4 h-full">
+                        <div className="flex items-center justify-between pb-3 border-b border-border">
+                          <div className="flex items-center gap-3">
+                            <div className={`h-10 w-10 rounded-full ${style.bg} flex items-center justify-center`}>
+                              <style.icon className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <p className={`text-lg font-bold ${style.text}`}>
+                                {parsed.statusText}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {subText}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {parsed.metrics.length > 0 && (
+                          <div className="grid grid-cols-3 gap-3">
+                            {parsed.metrics.map((m, i) => (
+                              <div
+                                key={i}
+                                className="bg-gradient-to-br from-muted/50 to-muted/30 p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
+                              >
+                                <p className="text-xs text-muted-foreground mb-1 font-medium">{m.label}</p>
+                                <p className="text-lg font-bold text-foreground">{m.value}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()
+                )}
+              </TabsContent>
+
+              <TabsContent value="log" className="flex-1 p-4 overflow-auto font-mono text-sm min-h-0">
+                {!output || output.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <Terminal size={48} className="mb-3 opacity-30" />
+                    <p className="text-sm font-medium">No logs yet</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">Run or Submit to generate execution logs</p>
+                  </div>
+                ) : (
+                  (() => {
+                    const parsed = parseOutput(output)
+                    const logs = parsed.logData
+
+                    return (
+                      <div className="space-y-2">
+                        {logs.map((entry, index) => {
+                          if (entry.type === "output") {
+                            return (
+                              <div key={index} className="space-y-2">
+                                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">
+                                  Program Output
+                                </p>
+                                <div className="bg-background border border-border rounded-md p-3">
+                                  <pre className="text-foreground whitespace-pre-wrap text-sm">{entry.message}</pre>
+                                </div>
+                              </div>
+                            )
+                          }
+
+                          const base = "p-3 rounded-md border flex items-start gap-2.5"
+                          let tone = "border-border/50 bg-muted/30"
+                          let Icon = Terminal
+
+                          if (entry.type === "error") {
+                            tone = "border-red-500/30 bg-red-50/50 dark:bg-red-950/20"
+                            Icon = XCircle
+                          } else if (entry.type === "success") {
+                            tone = "border-green-500/30 bg-green-50/50 dark:bg-green-950/20"
+                            Icon = CheckCircle2
+                          } else if (entry.type === "metric") {
+                            tone = "border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20"
+                            Icon = Clock
+                          } else if (entry.type === "info") {
+                            tone = "border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20"
+                            Icon = Terminal
+                          }
+
+                          return (
+                            <div key={index} className={`${base} ${tone}`}>
+                              <Icon className="h-4 w-4 mt-0.5 shrink-0" />
+                              <span className="whitespace-pre-wrap flex-1">{entry.message}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </div>
     </div>
   )

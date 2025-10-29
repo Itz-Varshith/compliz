@@ -77,7 +77,6 @@ export default function HomePage() {
             style={{ animationDelay: "2s" }}
           />
 
-          {/* Floating code symbols */}
           <div className="absolute top-1/4 left-10 text-orange-500/5 text-6xl font-bold">
             &lt;/&gt;
           </div>
@@ -90,7 +89,6 @@ export default function HomePage() {
         </div>
 
         <div className="max-w-7xl mx-auto">
-          {/* Logo */}
           <div className="text-center mb-20">
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-widest mb-4">
               <span className="text-orange-500">&gt;_</span>
@@ -107,10 +105,9 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Hero content */}
           <div className="text-center max-w-4xl mx-auto space-y-8">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight tracking-wide">
-              <span className="text-orange-500">{/* */}</span> Elevate Your
+              <span className="text-orange-500">{"//"}</span> Elevate Your
               Coding Journey
             </h2>
 
@@ -120,7 +117,6 @@ export default function HomePage() {
               with confidence.
             </p>
 
-            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
               <Button
                 size="lg"
@@ -145,7 +141,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="px-4 py-20 bg-orange-50/30 border-y-2 border-orange-500/20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -246,7 +241,7 @@ export default function HomePage() {
       <section className="px-4 py-20 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 tracking-wide">
+            <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 tracking-wide break-words">
               <span className="text-orange-500">if</span>{" "}
               (looking_for_excellence){" "}
               <span className="text-orange-500">{"{"}</span>
@@ -320,7 +315,7 @@ export default function HomePage() {
             {/* Column 2: Navigation Links */}
             <div className="space-y-4">
               <p className="text-sm text-slate-500 font-semibold tracking-wider">
-                {/* */} NAVIGATE
+                {"//"} NAVIGATE
               </p>
               <nav className="flex flex-col space-y-2">
                 <Link
@@ -353,7 +348,7 @@ export default function HomePage() {
             {/* Column 3: Connect & Socials */}
             <div className="space-y-4">
               <p className="text-sm text-slate-500 font-semibold tracking-wider">
-                {/* */} CONNECT
+                {"// CONNECT"}
               </p>
               <div className="flex items-center space-x-4">
                 <a
@@ -363,7 +358,6 @@ export default function HomePage() {
                 >
                   <Github className="h-6 w-6" />
                 </a>
-
                 <a
                   href="#"
                   className="text-slate-400 hover:text-primary transition-colors duration-200"
@@ -382,7 +376,7 @@ export default function HomePage() {
             </p>
             <div className="flex items-center gap-2 mt-4 sm:mt-0">
               <span className="font-semibold tracking-wider">
-                {/* */} MADE_BY
+                {"// MADE_BY"}
               </span>
               <div className="flex items-center gap-2 text-slate-300 font-bold tracking-wide">
                 <span className="hover:text-primary transition-colors cursor-default">

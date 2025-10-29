@@ -42,14 +42,6 @@ import {
   ResponsiveContainer,
 } from "recharts"
 
-const topicProgress = [
-  { topic: "Arrays", solved: 25, fill: "hsl(var(--chart-1))" },
-  { topic: "DP", solved: 12, fill: "hsl(var(--chart-2))" },
-  { topic: "Graphs", solved: 18, fill: "hsl(var(--chart-3))" },
-  { topic: "Strings", solved: 15, fill: "hsl(var(--chart-4))" },
-  { topic: "Trees", solved: 19, fill: "hsl(var(--chart-5))" },
-]
-
 // Helper function to format date
 const formatDate = (timestamp) => {
   if (!timestamp) return "N/A"
@@ -109,6 +101,44 @@ const getLast7DaysProgress = (submissions) => {
   })
   
   return last7Days.map(d => ({ date: d.dateStr, solved: d.solved }))
+}
+
+// Helper function to get topic distribution from accepted submissions
+const getTopicDistribution = (submissions) => {
+  const topicCounts = {}
+  
+  submissions.forEach(sub => {
+    // Only count accepted submissions
+    if (sub.verdict === "Accepted" || sub.verdict === "AC" || sub.verdict === "ACCEPTED") {
+      if (Array.isArray(sub.topics) && sub.topics.length > 0) {
+        sub.topics.forEach(topic => {
+          topicCounts[topic] = (topicCounts[topic] || 0) + 1
+        })
+      }
+    }
+  })
+  
+  // Convert to array and sort by count
+  const topicArray = Object.entries(topicCounts).map(([topic, count]) => ({
+    topic,
+    solved: count
+  }))
+  
+  topicArray.sort((a, b) => b.solved - a.solved)
+  
+  // Assign colors
+  const colors = [
+    "hsl(var(--chart-1))",
+    "hsl(var(--chart-2))",
+    "hsl(var(--chart-3))",
+    "hsl(var(--chart-4))",
+    "hsl(var(--chart-5))"
+  ]
+  
+  return topicArray.map((item, index) => ({
+    ...item,
+    fill: colors[index % colors.length]
+  }))
 }
 
 export default function ProfilePage() {
@@ -197,6 +227,7 @@ export default function ProfilePage() {
       list = subs.map((s, idx) => {
         const qId = s?.questionID?.questionUUID
         const qTitle = (qId && qMap.get(qId)?.title) || "Unknown Question"
+        const qTopics = (qId && qMap.get(qId)?.topics) || []
         return {
           id: s?.id ?? idx,
           title: qTitle,
@@ -204,7 +235,7 @@ export default function ProfilePage() {
           runtime: typeof s?.timeUsed === "number" ? `${s.timeUsed} ms` : "N/A",
           memory: typeof s?.memoryUsed === "number" ? `${s.memoryUsed} KB` : "N/A",
           language: s?.langId ?? "Unknown",
-          topics: [],
+          topics: Array.isArray(qTopics) ? qTopics : [],
           timestamp: s?.createdAt ?? "",
           code: s?.code ?? "",
         }
@@ -274,6 +305,7 @@ export default function ProfilePage() {
 
   const stats = calculateStats(submissionsList)
   const dailyProgress = getLast7DaysProgress(submissionsList)
+  const topicProgress = getTopicDistribution(submissionsList)
   
   const statsData = [
     { label: "Total Submissions", value: stats.total, icon: Code2, color: "text-blue-600" },
@@ -573,28 +605,34 @@ export default function ProfilePage() {
                   <Card className="border-border/50 shadow-lg">
                     <CardHeader>
                       <CardTitle>Questions by Topic</CardTitle>
-                      <CardDescription>Distribution across different topics</CardDescription>
+                      <CardDescription>Distribution of accepted submissions across topics</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={topicProgress}>
-                          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                          <XAxis dataKey="topic" className="text-xs" />
-                          <YAxis className="text-xs" />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "hsl(var(--background))",
-                              border: "1px solid hsl(var(--border))",
-                              borderRadius: "8px",
-                            }}
-                          />
-                          <Bar dataKey="solved" radius={[8, 8, 0, 0]}>
-                            {topicProgress.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.fill} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
+                      {topicProgress.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={topicProgress}>
+                            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                            <XAxis dataKey="topic" className="text-xs" />
+                            <YAxis className="text-xs" />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: "hsl(var(--background))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: "8px",
+                              }}
+                            />
+                            <Bar dataKey="solved" radius={[8, 8, 0, 0]}>
+                              {topicProgress.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                          No topic data available yet
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -602,34 +640,40 @@ export default function ProfilePage() {
                 <Card className="border-border/50 shadow-lg">
                   <CardHeader>
                     <CardTitle>Topic Distribution</CardTitle>
-                    <CardDescription>Pie chart view of your problem-solving focus</CardDescription>
+                    <CardDescription>Pie chart view of your accepted submissions by topic</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={400}>
-                      <PieChart>
-                        <Pie
-                          data={topicProgress}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ topic, solved }) => `${topic}: ${solved}`}
-                          outerRadius={120}
-                          fill="#8884d8"
-                          dataKey="solved"
-                        >
-                          {topicProgress.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--background))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "8px",
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    {topicProgress.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={400}>
+                        <PieChart>
+                          <Pie
+                            data={topicProgress}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ topic, solved }) => `${topic}: ${solved}`}
+                            outerRadius={120}
+                            fill="#8884d8"
+                            dataKey="solved"
+                          >
+                            {topicProgress.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.fill} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "hsl(var(--background))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "8px",
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                        No topic data available yet
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
