@@ -107,6 +107,7 @@ export default function HomePage() {
 
           <div className="text-center max-w-4xl mx-auto space-y-8">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight tracking-wide">
+              {/* eslint-disable-next-line react/jsx-no-comment-textnodes */}
               <span className="text-orange-500">{"//"}</span> Elevate Your
               Coding Journey
             </h2>
@@ -315,6 +316,7 @@ export default function HomePage() {
             {/* Column 2: Navigation Links */}
             <div className="space-y-4">
               <p className="text-sm text-slate-500 font-semibold tracking-wider">
+                {/* eslint-disable-next-line react/jsx-no-comment-textnodes */}
                 {"//"} NAVIGATE
               </p>
               <nav className="flex flex-col space-y-2">
@@ -348,6 +350,7 @@ export default function HomePage() {
             {/* Column 3: Connect & Socials */}
             <div className="space-y-4">
               <p className="text-sm text-slate-500 font-semibold tracking-wider">
+                {/* eslint-disable-next-line react/jsx-no-comment-textnodes */}
                 {"// CONNECT"}
               </p>
               <div className="flex items-center space-x-4">
@@ -376,6 +379,7 @@ export default function HomePage() {
             </p>
             <div className="flex items-center gap-2 mt-4 sm:mt-0">
               <span className="font-semibold tracking-wider">
+                {/* eslint-disable-next-line react/jsx-no-comment-textnodes */}
                 {"// MADE_BY"}
               </span>
               <div className="flex items-center gap-2 text-slate-300 font-bold tracking-wide">
