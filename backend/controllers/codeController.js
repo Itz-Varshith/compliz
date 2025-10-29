@@ -256,9 +256,69 @@ const getSavedCodes = async (req, res) => {
   }
 };
 
+const runExampleTestCases = async (req, res) => {
+  try {
+    const data = req.body;
+    const code = data.code;
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide the code to run",
+      });
+    }
+    const language = data.language;
+    if (!language) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide the language for the code",
+      });
+    }
+    const languageMap = {
+      cpp: 2,
+      c: 1,
+      java: 4,
+      python: 26,
+    };
+    const languageId = languageMap[language.toLowerCase()];
+    if (!languageId) {
+      return res.status(400).json({
+        success: false,
+        message: "Unsupported language",
+      });
+    }
+    const question = await Question.findById(data.questionId);
+    const submission = await axios.post(
+      JUDGE0_URL,
+      { language_id: languageId, source_code: code, stdin: question.examples.input, expected_output: question.examples.output },
+      {
+        params: { base64_encoded: "false", wait: "true", fields: "*" },
+        headers: {
+          "x-rapidapi-key": RAPIDAPI_KEY,
+          "x-rapidapi-host": RAPIDAPI_HOST,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log(submission);
+    return res.status(200).json({
+      success: true,
+      message: "Code executed successfully",
+      submission: submission.data,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while running code",
+      error: error,
+    });
+  }
+};
+
 export {
   codeSubmitHandler,
   userCodeHandler,
   compileCodeHandler,
   getSavedCodes,
+  runExampleTestCases,
 };

@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import Editor from "@monaco-editor/react"
+import { useState, useRef, useEffect, use } from "react";
+import Editor from "@monaco-editor/react";
 import {
   Play,
   Copy,
@@ -19,14 +19,18 @@ import {
   RotateCcw,
   Menu,
   X as CloseIcon,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { createClient } from "@/lib/supabase/client"
-import { useToast } from "@/hooks/use-toast"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const languageTemplates = {
   cpp: `// Write your code here`,
@@ -38,250 +42,397 @@ var solution = function(input) {
     // Write your solution here
     
 };`,
-  python: `class Solution:
-    def solve(self, input):
-        # Write your solution here
-        pass`,
-  java: `class Solution {
-    public void solve() {
+  python: `def solution(input):
+    # Write your solution here
+    pass`,
+  java: `public class Main {
+    public static void main(String[] args) {
+        // Read input from stdin
         // Write your solution here
-        
+        // Print output to stdout
     }
 }`,
-}
+};
 
 export default function SolvePage({ params }) {
-  const resolvedParams = params
-  const questionId = resolvedParams.id
+  const resolvedParams = use(params);
+  const questionId = resolvedParams.id;
 
-  const [question, setQuestion] = useState(null)
-  const [submissions, setSubmissions] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [question, setQuestion] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [activeTab, setActiveTab] = useState("description")
-  const [language, setLanguage] = useState("cpp")
-  const [code, setCode] = useState(languageTemplates.cpp)
-  const [customInput, setCustomInput] = useState("")
-  const [output, setOutput] = useState([])
-  const [isRunning, setIsRunning] = useState(false)
-  const [isDark, setIsDark] = useState(true)
-  const [time, setTime] = useState(0)
-  const [isTimerRunning, setIsTimerRunning] = useState(false)
-  const [solutionCode, setSolutionCode] = useState("")
-  const editorRef = useRef(null)
+  const [activeTab, setActiveTab] = useState("description");
+  const [language, setLanguage] = useState("cpp");
+  const [code, setCode] = useState(languageTemplates.cpp);
+  const [customInput, setCustomInput] = useState("");
+  const [output, setOutput] = useState([]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [isDark, setIsDark] = useState(true);
+  const [time, setTime] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [solutionCode, setSolutionCode] = useState("");
+  const editorRef = useRef(null);
 
-  const [token, setToken] = useState(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmissionsLoading, setIsSubmissionsLoading] = useState(false)
-  const [submissionsError, setSubmissionsError] = useState(null)
-  const [submissionsMeta, setSubmissionsMeta] = useState(null)
-  const [showSubmissionSuccess, setShowSubmissionSuccess] = useState(false)
-  
+  const [token, setToken] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmissionsLoading, setIsSubmissionsLoading] = useState(false);
+  const [submissionsError, setSubmissionsError] = useState(null);
+  const [submissionsMeta, setSubmissionsMeta] = useState(null);
+  const [showSubmissionSuccess, setShowSubmissionSuccess] = useState(false);
+
   // Resizable panel states
-  const [leftPanelWidth, setLeftPanelWidth] = useState(50)
-  const [consoleHeight, setConsoleHeight] = useState(35)
-  const [isDraggingVertical, setIsDraggingVertical] = useState(false)
-  const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false)
-  
+  const [leftPanelWidth, setLeftPanelWidth] = useState(50);
+  const [consoleHeight, setConsoleHeight] = useState(35);
+  const [isDraggingVertical, setIsDraggingVertical] = useState(false);
+  const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
+
   // Mobile states
-  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false)
-  const [isMobileView, setIsMobileView] = useState(false)
-  
-  const supabase = createClient()
-  const { toast } = useToast()
+  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  const supabase = createClient();
+  const { toast } = useToast();
 
   // Check if mobile view
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobileView(window.innerWidth < 1024)
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+      setIsMobileView(window.innerWidth < 1024);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Resize handlers
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isDraggingVertical) {
-        const container = document.getElementById('main-container')
+        const container = document.getElementById("main-container");
         if (container) {
-          const rect = container.getBoundingClientRect()
-          const newWidth = ((e.clientX - rect.left) / rect.width) * 100
-          setLeftPanelWidth(Math.min(Math.max(newWidth, 25), 75))
+          const rect = container.getBoundingClientRect();
+          const newWidth = ((e.clientX - rect.left) / rect.width) * 100;
+          setLeftPanelWidth(Math.min(Math.max(newWidth, 25), 75));
         }
       }
-      
+
       if (isDraggingHorizontal) {
-        const rightPanel = document.getElementById('right-panel')
+        const rightPanel = document.getElementById("right-panel");
         if (rightPanel) {
-          const rect = rightPanel.getBoundingClientRect()
-          const newHeight = ((rect.bottom - e.clientY) / rect.height) * 100
-          setConsoleHeight(Math.min(Math.max(newHeight, 20), 60))
+          const rect = rightPanel.getBoundingClientRect();
+          const newHeight = ((rect.bottom - e.clientY) / rect.height) * 100;
+          setConsoleHeight(Math.min(Math.max(newHeight, 20), 60));
         }
       }
-    }
+    };
 
     const handleMouseUp = () => {
-      setIsDraggingVertical(false)
-      setIsDraggingHorizontal(false)
-    }
+      setIsDraggingVertical(false);
+      setIsDraggingHorizontal(false);
+    };
 
     if (isDraggingVertical || isDraggingHorizontal) {
-      document.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseup', handleMouseUp)
-      document.body.style.cursor = isDraggingVertical ? 'col-resize' : 'row-resize'
-      document.body.style.userSelect = 'none'
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = isDraggingVertical
+        ? "col-resize"
+        : "row-resize";
+      document.body.style.userSelect = "none";
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-      document.body.style.cursor = 'default'
-      document.body.style.userSelect = 'auto'
-    }
-  }, [isDraggingVertical, isDraggingHorizontal])
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "default";
+      document.body.style.userSelect = "auto";
+    };
+  }, [isDraggingVertical, isDraggingHorizontal]);
 
   useEffect(() => {
     const getToken = async () => {
       const {
         data: { session },
-      } = await supabase.auth.getSession()
+      } = await supabase.auth.getSession();
 
       if (session) {
-        setToken(session.access_token)
-        setIsAuthenticated(true)
+        setToken(session.access_token);
+        setIsAuthenticated(true);
       } else {
-        setIsAuthenticated(false)
+        setIsAuthenticated(false);
       }
-    }
+    };
 
-    getToken()
+    getToken();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        setToken(session.access_token)
-        setIsAuthenticated(true)
+        setToken(session.access_token);
+        setIsAuthenticated(true);
       } else {
-        setToken(null)
-        setIsAuthenticated(false)
+        setToken(null);
+        setIsAuthenticated(false);
       }
-    })
+    });
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
-    if (!token) return
+    if (!token) return;
 
     const fetchQuestion = async () => {
       try {
-        setIsLoading(true)
-        setError(null)
+        setIsLoading(true);
+        setError(null);
 
-        const response = await fetch(`http://localhost:5000/question/one/${questionId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+        const response = await fetch(
+          `http://localhost:5000/question/one/${questionId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json()
+        const data = await response.json();
         if (data.success && data.questionData) {
           const questionData = {
             ...data.questionData,
+            _id: data.questionData._id || data.questionData.id,
             examples: data.questionData.examples || { input: "", output: "" },
-            testCases: Array.isArray(data.questionData.testCases) ? data.questionData.testCases : [],
-            constraints: Array.isArray(data.questionData.constraints) ? data.questionData.constraints : [],
-            topics: Array.isArray(data.questionData.topics) ? data.questionData.topics : [],
-            hints: Array.isArray(data.questionData.hints) ? data.questionData.hints : [],
+            testCases: Array.isArray(data.questionData.testCases)
+              ? data.questionData.testCases
+              : [],
+            constraints: Array.isArray(data.questionData.constraints)
+              ? data.questionData.constraints
+              : [],
+            topics: Array.isArray(data.questionData.topics)
+              ? data.questionData.topics
+              : [],
+            hints: Array.isArray(data.questionData.hints)
+              ? data.questionData.hints
+              : [],
             accepted_submissions: data.questionData.accepted_submissions || 0,
             total_submissions: data.questionData.total_submissions || 0,
             timeLimit: data.questionData.timeLimit || 1,
             memoryLimit: data.questionData.memoryLimit || 128,
-          }
-          setQuestion(questionData)
-          setSolutionCode(data.questionData.solutionCode || "")
-          setSubmissions([])
+          };
+          setQuestion(questionData);
+          setSolutionCode(data.questionData.solutionCode || "");
+          setSubmissions([]);
         } else {
-          throw new Error(data.message || "Failed to fetch question")
+          throw new Error(data.message || "Failed to fetch question");
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch question")
-        console.error("Error fetching question:", err)
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch question"
+        );
+        console.error("Error fetching question:", err);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchQuestion()
-  }, [questionId, token])
+    fetchQuestion();
+  }, [questionId, token]);
 
   useEffect(() => {
-    let interval
+    let interval;
     if (isTimerRunning) {
       interval = setInterval(() => {
-        setTime((prevTime) => prevTime + 1)
-      }, 1000)
+        setTime((prevTime) => prevTime + 1);
+      }, 1000);
     }
-    return () => clearInterval(interval)
-  }, [isTimerRunning])
+    return () => clearInterval(interval);
+  }, [isTimerRunning]);
 
   useEffect(() => {
     if (isDark) {
-      document.documentElement.classList.add("dark")
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove("dark")
+      document.documentElement.classList.remove("dark");
     }
-  }, [isDark])
+  }, [isDark]);
 
   const formatTime = (seconds) => {
-    const hrs = Math.floor(seconds / 3600)
-    const mins = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs.toString().padStart(2, "0")}:${mins
+      .toString()
+      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const languageOptions = [
     { value: "cpp", label: "C++" },
     { value: "javascript", label: "JavaScript" },
     { value: "python", label: "Python" },
     { value: "java", label: "Java" },
-  ]
+  ];
 
   const handleLanguageChange = (newLang) => {
-    setLanguage(newLang)
-    setCode(languageTemplates[newLang])
-    setOutput([])
-  }
+    setLanguage(newLang);
+    setCode(languageTemplates[newLang]);
+    setOutput([]);
+  };
 
   const handleEditorDidMount = (editor) => {
-    editorRef.current = editor
-  }
+    editorRef.current = editor;
+  };
 
-  const runCode = () => {
-    setIsRunning(true)
-    setOutput([])
+  const runCode = async () => {
+    if (!code || code.trim() === "") {
+      toast({
+        title: "Empty Code",
+        description: "Please write some code before running.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setTimeout(() => {
+    if (!question?._id) {
+      toast({
+        title: "Question Not Loaded",
+        description: "Please wait for the question to load.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!token || !isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to run code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsRunning(true);
+    setOutput([
+      { type: "log", message: "Running code against example test cases..." },
+    ]);
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/code/run-example-test-cases",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            code: code,
+            language: language,
+            questionId: question._id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success && data.submission) {
+        const submission = data.submission;
+        const statusDescription =
+          submission.status?.description ||
+          submission.status?.name ||
+          "Unknown";
+        const isAccepted = statusDescription === "Accepted";
+
+        const outputMessages = [
+          { type: "success", message: "Code executed successfully!" },
+          {
+            type: "status",
+            message: statusDescription,
+            isAccepted: isAccepted,
+          },
+        ];
+
+        const logMessages = [
+          { type: "success", message: "✓ Code executed successfully!" },
+          { type: "info", message: `Status: ${statusDescription}` },
+        ];
+
+        if (submission.stdout) {
+          logMessages.push({
+            type: "output",
+            message: submission.stdout,
+          });
+        }
+
+        if (submission.stderr) {
+          logMessages.push({
+            type: "error",
+            message: submission.stderr,
+          });
+        }
+
+        if (submission.time !== undefined && submission.time !== null) {
+          outputMessages.push({
+            type: "metric",
+            label: "Runtime",
+            value: `${(submission.time * 1000).toFixed(0)} ms`,
+          });
+          logMessages.push({
+            type: "metric",
+            message: `⏱️ Runtime: ${(submission.time * 1000).toFixed(0)} ms`,
+          });
+        }
+
+        if (submission.memory !== undefined && submission.memory !== null) {
+          outputMessages.push({
+            type: "metric",
+            label: "Memory",
+            value: `${(submission.memory / 1024).toFixed(2)} MB`,
+          });
+          logMessages.push({
+            type: "metric",
+            message: `💾 Memory: ${(submission.memory / 1024).toFixed(2)} MB`,
+          });
+        }
+
+        if (submission.compile_output) {
+          logMessages.push({
+            type: "error",
+            message: `Compilation Error: ${submission.compile_output}`,
+          });
+        }
+
+        outputMessages.push({ type: "log_data", data: logMessages });
+        setOutput(outputMessages);
+      } else {
+        throw new Error(data.message || "Failed to run code");
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to run code";
+
       setOutput([
-        { type: "log", message: "Running test cases..." },
-        { type: "log", message: "Test case 1: Passed ✓" },
-        { type: "log", message: "Test case 2: Passed ✓" },
-        { type: "log", message: "Runtime: 52 ms" },
-        { type: "log", message: "Memory: 16.2 MB" },
-      ])
-      setIsRunning(false)
-    }, 1500)
-  }
+        { type: "error", message: "Code execution failed" },
+        { type: "error", message: errorMessage },
+      ]);
+
+      toast({
+        title: "Execution Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
+      console.error("Error running code:", err);
+    } finally {
+      setIsRunning(false);
+    }
+  };
 
   const submitCode = async () => {
     if (!isAuthenticated || !token) {
@@ -289,8 +440,8 @@ export default function SolvePage({ params }) {
         title: "Authentication Required",
         description: "Please log in to submit your solution.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (!code || code.trim() === "") {
@@ -298,13 +449,13 @@ export default function SolvePage({ params }) {
         title: "Empty Code",
         description: "Please write some code before submitting.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsSubmitting(true)
-    setIsRunning(true)
-    setOutput([{ type: "log", message: "Submitting solution..." }])
+    setIsSubmitting(true);
+    setIsRunning(true);
+    setOutput([{ type: "log", message: "Submitting solution..." }]);
 
     try {
       const response = await fetch("http://localhost:5000/code/submit", {
@@ -318,19 +469,22 @@ export default function SolvePage({ params }) {
           language: language,
           qNumber: questionId,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (data.success) {
-        const submission = data.submission || {}
-        const statusDescription = submission.status?.description || submission.status?.name || "Unknown"
-        let displayStatus = statusDescription
+        const submission = data.submission || {};
+        const statusDescription =
+          submission.status?.description ||
+          submission.status?.name ||
+          "Unknown";
+        let displayStatus = statusDescription;
         if (statusDescription === "Wrong Answer") {
-          displayStatus = "Test cases failed"
+          displayStatus = "Test cases failed";
         }
-        const isAccepted = (statusDescription === "Accepted") 
-        
+        const isAccepted = statusDescription === "Accepted";
+
         const outputMessages = [
           { type: "success", message: "Submission successful!" },
           {
@@ -338,25 +492,25 @@ export default function SolvePage({ params }) {
             message: displayStatus,
             isAccepted: isAccepted,
           },
-        ]
+        ];
 
-        const logMessages = [ 
+        const logMessages = [
           { type: "success", message: "✓ Submission successful!" },
           { type: "info", message: `Status: ${statusDescription}` },
-        ]
+        ];
 
         if (submission.stdout) {
           logMessages.push({
             type: "output",
             message: submission.stdout,
-          })
+          });
         }
 
         if (submission.stderr) {
           logMessages.push({
             type: "error",
             message: submission.stderr,
-          })
+          });
         }
 
         if (submission.time) {
@@ -364,11 +518,11 @@ export default function SolvePage({ params }) {
             type: "metric",
             label: "Runtime",
             value: `${submission.time}s`,
-          })
+          });
           logMessages.push({
             type: "metric",
             message: `⏱️ Runtime: ${submission.time}s`,
-          })
+          });
         }
 
         if (submission.memory) {
@@ -376,11 +530,11 @@ export default function SolvePage({ params }) {
             type: "metric",
             label: "Memory",
             value: `${(submission.memory / 1024).toFixed(2)} MB`,
-          })
+          });
           logMessages.push({
             type: "metric",
             message: `💾 Memory: ${(submission.memory / 1024).toFixed(2)} MB`,
-          })
+          });
         }
 
         if (submission.wall_time) {
@@ -388,210 +542,228 @@ export default function SolvePage({ params }) {
             type: "metric",
             label: "Wall Time",
             value: `${submission.wall_time}s`,
-          })
+          });
           logMessages.push({
             type: "metric",
             message: `🕐 Wall Time: ${submission.wall_time}s`,
-          })
+          });
         }
 
         if (submission.compile_output) {
           logMessages.push({
             type: "log",
             message: `Compile: ${submission.compile_output}`,
-          })
+          });
         }
 
         if (submission.language?.name) {
           logMessages.push({
             type: "info",
             message: `Language: ${submission.language.name}`,
-          })
+          });
         }
 
-        outputMessages.push({ type: "log_data", data: logMessages })
-        setOutput(outputMessages)
+        outputMessages.push({ type: "log_data", data: logMessages });
+        setOutput(outputMessages);
 
-        setShowSubmissionSuccess(true)
-        setTimeout(() => setShowSubmissionSuccess(false), 3000)
+        setShowSubmissionSuccess(true);
+        setTimeout(() => setShowSubmissionSuccess(false), 3000);
 
         toast({
           title: "Success!",
-          description: data.message || "Your solution has been submitted successfully.",
-        })
+          description:
+            data.message || "Your solution has been submitted successfully.",
+        });
 
-        fetchSubmissions()
+        fetchSubmissions();
       } else {
-        throw new Error(data.message || "Submission failed")
+        throw new Error(data.message || "Submission failed");
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to submit code"
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to submit code";
 
       setOutput([
         { type: "error", message: "Submission failed" },
         { type: "error", message: errorMessage },
-      ])
+      ]);
 
       toast({
         title: "Submission Failed",
         description: errorMessage,
         variant: "destructive",
-      })
+      });
 
-      console.error("Error submitting code:", err)
+      console.error("Error submitting code:", err);
     } finally {
-      setIsSubmitting(false)
-      setIsRunning(false)
+      setIsSubmitting(false);
+      setIsRunning(false);
     }
-  }
+  };
 
   const copyCode = () => {
-    navigator.clipboard.writeText(code)
+    navigator.clipboard.writeText(code);
     toast({
       title: "Copied!",
       description: "Code copied to clipboard.",
-    })
-  }
+    });
+  };
 
   const fetchSubmissions = async () => {
-    if (!questionId) return
+    if (!questionId) return;
     try {
-      setIsSubmissionsLoading(true)
-      setSubmissionsError(null)
-      setSubmissionsMeta(null)
-      const headers = {}
-      if (token) headers["Authorization"] = `Bearer ${token}`
+      setIsSubmissionsLoading(true);
+      setSubmissionsError(null);
+      setSubmissionsMeta(null);
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const res = await fetch(`http://localhost:5000/submission/one/${questionId}`, { headers })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const res = await fetch(
+        `http://localhost:5000/submission/one/${questionId}`,
+        { headers }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      const raw = await res.json()
+      const raw = await res.json();
       setSubmissionsMeta({
         success: typeof raw?.success === "boolean" ? raw.success : undefined,
         message: typeof raw?.message === "string" ? raw.message : undefined,
-      })
+      });
 
-      const list = Array.isArray(raw) ? raw : raw?.allSubmissions || raw?.data || []
+      const list = Array.isArray(raw)
+        ? raw
+        : raw?.allSubmissions || raw?.data || [];
 
       const normalized = (list || []).map((s, idx) => {
         const runtimeMs =
           typeof s.time_ms === "number"
             ? `${s.time_ms} ms`
             : typeof s.timeUsed === "number"
-              ? `${s.timeUsed} ms`
-              : typeof s.time === "number"
-                ? `${Math.round(s.time * 1000)} ms`
-                : s.runtime || "N/A"
+            ? `${s.timeUsed} ms`
+            : typeof s.time === "number"
+            ? `${Math.round(s.time * 1000)} ms`
+            : s.runtime || "N/A";
         const memoryText =
           typeof s.memory_kb === "number"
             ? `${s.memory_kb} KB`
             : typeof s.memoryUsed === "number"
-              ? `${s.memoryUsed} KB`
-              : typeof s.memory === "number"
-                ? `${(s.memory / 1024).toFixed(1)} MB`
-                : s.memory_text || s.memory || "N/A"
+            ? `${s.memoryUsed} KB`
+            : typeof s.memory === "number"
+            ? `${(s.memory / 1024).toFixed(1)} MB`
+            : s.memory_text || s.memory || "N/A";
 
-        let displayStatus = s.verdict || s.status || "Unknown"
+        let displayStatus = s.verdict || s.status || "Unknown";
         if (displayStatus === "Wrong Answer") {
-          displayStatus = "Test cases failed"
+          displayStatus = "Test cases failed";
         }
 
         return {
           id: s.id || s._id || s.submissionId || `${idx}`,
-          timestamp: s.timestamp || s.createdAt || s.created_at || s.time || new Date().toISOString(),
+          timestamp:
+            s.timestamp ||
+            s.createdAt ||
+            s.created_at ||
+            s.time ||
+            new Date().toISOString(),
           status: displayStatus,
           runtime: runtimeMs,
           memory: memoryText,
-          language: s.language?.name || s.langId || s.lang || s.language || "Unknown",
-        }
-      })
+          language:
+            s.language?.name || s.langId || s.lang || s.language || "Unknown",
+        };
+      });
 
-      setSubmissions(normalized)
+      setSubmissions(normalized);
     } catch (e) {
-      setSubmissionsError(e?.message || "Failed to load submissions")
+      setSubmissionsError(e?.message || "Failed to load submissions");
     } finally {
-      setIsSubmissionsLoading(false)
+      setIsSubmissionsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (activeTab === "submissions") {
-      fetchSubmissions()
+      fetchSubmissions();
     }
-  }, [activeTab, questionId, token])
+  }, [activeTab, questionId, token]);
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case "Easy":
-        return "text-green-600 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-950/30 dark:border-green-800"
+        return "text-green-600 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-950/30 dark:border-green-800";
       case "Medium":
-        return "text-yellow-600 bg-yellow-50 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-950/30 dark:border-yellow-800"
+        return "text-yellow-600 bg-yellow-50 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-950/30 dark:border-yellow-800";
       case "Hard":
-        return "text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-950/30 dark:border-red-800"
+        return "text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-950/30 dark:border-red-800";
       default:
-        return "text-gray-600 bg-gray-50 border-gray-200 dark:text-gray-400 dark:bg-gray-950/30 dark:border-gray-800"
+        return "text-gray-600 bg-gray-50 border-gray-200 dark:text-gray-400 dark:bg-gray-950/30 dark:border-gray-800";
     }
-  }
+  };
 
   const getStatusColor = (status) => {
-    if ((status === "Accepted" || status?.toLowerCase().includes("accepted"))) {
-        return "text-green-600 dark:text-green-400"
+    if (status === "Accepted" || status?.toLowerCase().includes("accepted")) {
+      return "text-green-600 dark:text-green-400";
     }
-    
+
     switch (status) {
       case "Wrong Answer":
       case "Test cases failed":
-        return "text-red-600 dark:text-red-400"
+        return "text-red-600 dark:text-red-400";
       case "Time Limit Exceeded":
-        return "text-yellow-600 dark:text-yellow-400"
+        return "text-yellow-600 dark:text-yellow-400";
       case "Compilation Error":
       case "Runtime Error":
       case "Runtime Error (NZEC)":
-        return "text-red-600 dark:text-red-400"
+        return "text-red-600 dark:text-red-400";
       default:
-        return "text-gray-600 dark:text-gray-400"
+        return "text-gray-600 dark:text-gray-400";
     }
-  }
+  };
 
   const getStatusIcon = (status) => {
-    if ((status === "Accepted" || status?.toLowerCase().includes("accepted"))) {
-      return <CheckCircle2 className="h-4 w-4" />
+    if (status === "Accepted" || status?.toLowerCase().includes("accepted")) {
+      return <CheckCircle2 className="h-4 w-4" />;
     }
-    
+
     switch (status) {
       case "Wrong Answer":
       case "Test cases failed":
       case "Compilation Error":
       case "Runtime Error":
       case "Runtime Error (NZEC)":
-        return <XCircle className="h-4 w-4" />
+        return <XCircle className="h-4 w-4" />;
       default:
-        return <Clock className="h-4 w-4" />
+        return <Clock className="h-4 w-4" />;
     }
-  }
+  };
 
   const parseOutput = (out) => {
-    const hasError = out.some((o) => o.type === "error")
-    const statusEntry = out.find((o) => o.type === "status")
-    const statusText = statusEntry?.message || "Results"
-    const isAccepted = statusEntry?.isAccepted || false
+    const hasError = out.some((o) => o.type === "error");
+    const statusEntry = out.find((o) => o.type === "status");
+    const statusText = statusEntry?.message || "Results";
+    const isAccepted = statusEntry?.isAccepted || false;
 
-    const metrics = out.filter((o) => o.type === "metric")
-    const logData = out.find((o) => o.type === "log_data")?.data || out
+    const metrics = out.filter((o) => o.type === "metric");
+    const logData = out.find((o) => o.type === "log_data")?.data || out;
 
-    return { hasError, statusText, isAccepted, metrics, logData }
-  }
+    return { hasError, statusText, isAccepted, metrics, logData };
+  };
 
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background px-4">
         <div className="text-center">
-          <Loader2 size={48} className="mx-auto mb-4 text-primary animate-spin" />
-          <h3 className="text-xl font-semibold text-foreground mb-2">Loading question...</h3>
+          <Loader2
+            size={48}
+            className="mx-auto mb-4 text-primary animate-spin"
+          />
+          <h3 className="text-xl font-semibold text-foreground mb-2">
+            Loading question...
+          </h3>
           <p className="text-muted-foreground">Please wait</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error || !question) {
@@ -599,20 +771,27 @@ export default function SolvePage({ params }) {
       <div className="flex h-screen items-center justify-center bg-background px-4">
         <div className="text-center max-w-md">
           <XCircle size={48} className="mx-auto mb-4 text-destructive" />
-          <h3 className="text-xl font-semibold text-foreground mb-2">Error loading question</h3>
-          <p className="text-muted-foreground mb-4">{error || "Question not found"}</p>
+          <h3 className="text-xl font-semibold text-foreground mb-2">
+            Error loading question
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            {error || "Question not found"}
+          </p>
           <Button onClick={() => window.location.reload()} variant="outline">
             Retry
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   const acceptanceRate =
     question.total_submissions > 0
-      ? ((question.accepted_submissions / question.total_submissions) * 100).toFixed(1)
-      : "0.0"
+      ? (
+          (question.accepted_submissions / question.total_submissions) *
+          100
+        ).toFixed(1)
+      : "0.0";
 
   // Problem description panel component
   const ProblemPanel = () => (
@@ -627,7 +806,7 @@ export default function SolvePage({ params }) {
             {question.difficulty && (
               <div
                 className={`px-2.5 py-1 rounded-md text-xs font-medium border whitespace-nowrap ${getDifficultyColor(
-                  question.difficulty,
+                  question.difficulty
                 )}`}
               >
                 {question.difficulty}
@@ -682,33 +861,51 @@ export default function SolvePage({ params }) {
               </p>
             </div>
 
-            {question.examples && (question.examples.input || question.examples.output) && (
-              <div className="space-y-4">
-                <Card className="p-3 sm:p-4 bg-muted/50 border-muted">
-                  <p className="font-semibold mb-3 text-foreground text-sm sm:text-base">Example:</p>
-                  <div className="space-y-2 font-mono text-xs sm:text-sm">
-                    <div className="bg-background/50 p-2 sm:p-3 rounded-md flex flex-col gap-1">
-                      <span className="font-semibold text-muted-foreground">Input:</span>
-                      <span className="text-foreground whitespace-pre-line break-all">{question.examples.input || "N/A"}</span>
-                    </div>
-                    <div className="bg-background/50 p-2 sm:p-3 rounded-md flex flex-col gap-1">
-                      <span className="font-semibold text-muted-foreground">Output:</span>
-                      <span className="text-foreground whitespace-pre-line break-all">{question.examples.output || "N/A"}</span>
-                    </div>
-                    {question.examples.explanation && question.examples.explanation !== "--" && (
-                      <div className="bg-background/50 p-2 sm:p-3 rounded-md">
-                        <span className="font-semibold text-muted-foreground">Explanation:</span>{" "}
-                        <span className="text-foreground">{question.examples.explanation}</span>
+            {question.examples &&
+              (question.examples.input || question.examples.output) && (
+                <div className="space-y-4">
+                  <Card className="p-3 sm:p-4 bg-muted/50 border-muted">
+                    <p className="font-semibold mb-3 text-foreground text-sm sm:text-base">
+                      Example:
+                    </p>
+                    <div className="space-y-2 font-mono text-xs sm:text-sm">
+                      <div className="bg-background/50 p-2 sm:p-3 rounded-md flex flex-col gap-1">
+                        <span className="font-semibold text-muted-foreground">
+                          Input:
+                        </span>
+                        <span className="text-foreground whitespace-pre-line break-all">
+                          {question.examples.input || "N/A"}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                </Card>
-              </div>
-            )}
+                      <div className="bg-background/50 p-2 sm:p-3 rounded-md flex flex-col gap-1">
+                        <span className="font-semibold text-muted-foreground">
+                          Output:
+                        </span>
+                        <span className="text-foreground whitespace-pre-line break-all">
+                          {question.examples.output || "N/A"}
+                        </span>
+                      </div>
+                      {question.examples.explanation &&
+                        question.examples.explanation !== "--" && (
+                          <div className="bg-background/50 p-2 sm:p-3 rounded-md">
+                            <span className="font-semibold text-muted-foreground">
+                              Explanation:
+                            </span>{" "}
+                            <span className="text-foreground">
+                              {question.examples.explanation}
+                            </span>
+                          </div>
+                        )}
+                    </div>
+                  </Card>
+                </div>
+              )}
 
             {question.constraints && question.constraints.length > 0 && (
               <div>
-                <h3 className="font-semibold mb-3 text-foreground text-sm sm:text-base">Constraints:</h3>
+                <h3 className="font-semibold mb-3 text-foreground text-sm sm:text-base">
+                  Constraints:
+                </h3>
                 <ul className="space-y-2 font-mono text-xs sm:text-sm">
                   {question.constraints.map((constraint, idx) => (
                     <li key={idx} className="text-muted-foreground break-all">
@@ -721,32 +918,48 @@ export default function SolvePage({ params }) {
 
             <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-4 border-t border-border">
               <div className="bg-muted/30 p-3 sm:p-4 rounded-lg">
-                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Time Limit</p>
-                <p className="text-base sm:text-lg font-semibold text-foreground">{question.timeLimit} s</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                  Time Limit
+                </p>
+                <p className="text-base sm:text-lg font-semibold text-foreground">
+                  {question.timeLimit} s
+                </p>
               </div>
               <div className="bg-muted/30 p-3 sm:p-4 rounded-lg">
-                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Memory Limit</p>
-                <p className="text-base sm:text-lg font-semibold text-foreground">{question.memoryLimit} MB</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                  Memory Limit
+                </p>
+                <p className="text-base sm:text-lg font-semibold text-foreground">
+                  {question.memoryLimit} MB
+                </p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-4 border-t border-border">
               <div className="bg-muted/30 p-3 sm:p-4 rounded-lg">
-                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Accepted</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                  Accepted
+                </p>
                 <p className="text-base sm:text-lg font-semibold text-foreground">
                   {question.accepted_submissions.toLocaleString()}
                 </p>
               </div>
               <div className="bg-muted/30 p-3 sm:p-4 rounded-lg">
-                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Submissions</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                  Submissions
+                </p>
                 <p className="text-base sm:text-lg font-semibold text-foreground">
                   {question.total_submissions.toLocaleString()}
                 </p>
               </div>
               <div className="col-span-2 bg-muted/30 p-3 sm:p-4 rounded-lg">
-                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Acceptance Rate</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                  Acceptance Rate
+                </p>
                 <div className="flex items-center gap-2">
-                  <p className="text-base sm:text-lg font-semibold text-foreground">{acceptanceRate}%</p>
+                  <p className="text-base sm:text-lg font-semibold text-foreground">
+                    {acceptanceRate}%
+                  </p>
                   <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
                 </div>
               </div>
@@ -758,7 +971,9 @@ export default function SolvePage({ params }) {
               {!question.hints || question.hints.length === 0 ? (
                 <Card className="p-6 sm:p-8 text-center border-dashed">
                   <Lightbulb className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground text-sm sm:text-base">No hints available for this problem</p>
+                  <p className="text-muted-foreground text-sm sm:text-base">
+                    No hints available for this problem
+                  </p>
                 </Card>
               ) : (
                 question.hints.map((hint, idx) => (
@@ -767,13 +982,17 @@ export default function SolvePage({ params }) {
                       <CollapsibleTrigger className="w-full p-3 sm:p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
                         <div className="flex items-center gap-2">
                           <Lightbulb className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                          <span className="font-semibold text-foreground text-sm sm:text-base">Hint {idx + 1}</span>
+                          <span className="font-semibold text-foreground text-sm sm:text-base">
+                            Hint {idx + 1}
+                          </span>
                         </div>
                         <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180 text-muted-foreground" />
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <div className="p-3 sm:p-4 pt-0 border-t bg-muted/30">
-                          <p className="text-sm sm:text-base text-foreground leading-relaxed">{hint}</p>
+                          <p className="text-sm sm:text-base text-foreground leading-relaxed">
+                            {hint}
+                          </p>
                         </div>
                       </CollapsibleContent>
                     </Card>
@@ -785,7 +1004,9 @@ export default function SolvePage({ params }) {
 
           <TabsContent value="submissions" className="mt-6">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-foreground text-sm sm:text-base">Your Submissions</h3>
+              <h3 className="font-semibold text-foreground text-sm sm:text-base">
+                Your Submissions
+              </h3>
               <Button
                 size="sm"
                 variant="outline"
@@ -794,7 +1015,11 @@ export default function SolvePage({ params }) {
                 className="gap-2 bg-transparent"
                 title="Refresh submissions"
               >
-                <RotateCcw className={`h-4 w-4 ${isSubmissionsLoading ? "animate-spin" : ""}`} />
+                <RotateCcw
+                  className={`h-4 w-4 ${
+                    isSubmissionsLoading ? "animate-spin" : ""
+                  }`}
+                />
                 <span className="hidden sm:inline">Refresh</span>
               </Button>
             </div>
@@ -810,8 +1035,12 @@ export default function SolvePage({ params }) {
                 <div className="flex items-start gap-2">
                   <XCircle className="h-5 w-5 text-destructive mt-0.5" />
                   <div>
-                    <p className="font-medium text-destructive text-sm sm:text-base">Failed to load submissions</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">{submissionsError}</p>
+                    <p className="font-medium text-destructive text-sm sm:text-base">
+                      Failed to load submissions
+                    </p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      {submissionsError}
+                    </p>
                     <div className="mt-3">
                       <Button size="sm" onClick={fetchSubmissions}>
                         Retry
@@ -823,52 +1052,66 @@ export default function SolvePage({ params }) {
             ) : !submissions || submissions.length === 0 ? (
               <Card className="p-6 sm:p-8 text-center border-dashed">
                 <Terminal className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground mb-1 text-sm sm:text-base">No submissions yet</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">Submit your solution to see it here</p>
+                <p className="text-muted-foreground mb-1 text-sm sm:text-base">
+                  No submissions yet
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Submit your solution to see it here
+                </p>
               </Card>
             ) : (
               <div className="space-y-3">
-              {[...submissions]
-              .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-              .map((submission) => {
-                const formattedDate = new Date(submission.timestamp).toLocaleString("en-IN", {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true
-                });
+                {[...submissions]
+                  .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                  .map((submission) => {
+                    const formattedDate = new Date(
+                      submission.timestamp
+                    ).toLocaleString("en-IN", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    });
 
-                return (
-                  <Card
-                    key={submission.id}
-                    className="p-3 sm:p-4 hover:bg-muted/50 transition-colors cursor-pointer border-muted"
-                  >
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className={getStatusColor(submission.status)}>
-                          {getStatusIcon(submission.status)}
+                    return (
+                      <Card
+                        key={submission.id}
+                        className="p-3 sm:p-4 hover:bg-muted/50 transition-colors cursor-pointer border-muted"
+                      >
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className={getStatusColor(submission.status)}>
+                              {getStatusIcon(submission.status)}
+                            </div>
+                            <div>
+                              <p
+                                className={`font-semibold text-sm sm:text-base ${getStatusColor(
+                                  submission.status
+                                )}`}
+                              >
+                                {submission.status}
+                              </p>
+                              <p className="text-xs sm:text-sm text-muted-foreground">
+                                {formattedDate}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-left sm:text-right text-xs sm:text-sm ml-9 sm:ml-0">
+                            <p className="text-muted-foreground font-medium">
+                              {submission.language}
+                            </p>
+                            {submission.runtime !== "N/A" && (
+                              <p className="text-muted-foreground">
+                                {submission.runtime} • {submission.memory}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <p className={`font-semibold text-sm sm:text-base ${getStatusColor(submission.status)}`}>
-                            {submission.status}
-                          </p>
-                          <p className="text-xs sm:text-sm text-muted-foreground">{formattedDate}</p>
-                        </div>
-                      </div>
-                      <div className="text-left sm:text-right text-xs sm:text-sm ml-9 sm:ml-0">
-                        <p className="text-muted-foreground font-medium">{submission.language}</p>
-                        {submission.runtime !== "N/A" && (
-                          <p className="text-muted-foreground">
-                            {submission.runtime} • {submission.memory}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                  );
-              })}
+                      </Card>
+                    );
+                  })}
               </div>
             )}
           </TabsContent>
@@ -877,7 +1120,9 @@ export default function SolvePage({ params }) {
             {!solutionCode || solutionCode.trim() === "" ? (
               <Card className="p-6 sm:p-8 text-center border-dashed">
                 <Code2 className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground mb-2 text-sm sm:text-base">No solution available yet</p>
+                <p className="text-muted-foreground mb-2 text-sm sm:text-base">
+                  No solution available yet
+                </p>
                 <p className="text-xs sm:text-sm text-muted-foreground">
                   Solutions will be available after you solve this problem
                 </p>
@@ -887,7 +1132,9 @@ export default function SolvePage({ params }) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Code2 className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold text-foreground text-sm sm:text-base">Official Solution</h3>
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base">
+                      Official Solution
+                    </h3>
                   </div>
                   <Button
                     onClick={() => navigator.clipboard.writeText(solutionCode)}
@@ -901,7 +1148,9 @@ export default function SolvePage({ params }) {
                 </div>
                 <Card className="overflow-hidden border-muted">
                   <div className="bg-muted/30 px-3 sm:px-4 py-2 border-b border-border">
-                    <p className="text-xs sm:text-sm text-muted-foreground font-medium">Solution Code</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+                      Solution Code
+                    </p>
                   </div>
                   <div className="h-[400px] sm:h-[500px]">
                     <Editor
@@ -927,7 +1176,7 @@ export default function SolvePage({ params }) {
         </Tabs>
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-background overflow-hidden">
@@ -942,9 +1191,11 @@ export default function SolvePage({ params }) {
             className="gap-2"
           >
             {isMobilePanelOpen ? <CloseIcon size={16} /> : <Menu size={16} />}
-            <span className="text-sm">{isMobilePanelOpen ? 'Close' : 'Problem'}</span>
+            <span className="text-sm">
+              {isMobilePanelOpen ? "Close" : "Problem"}
+            </span>
           </Button>
-          
+
           <div className="flex gap-1">
             <select
               value={language}
@@ -957,8 +1208,12 @@ export default function SolvePage({ params }) {
                 </option>
               ))}
             </select>
-            
-            <Button onClick={() => setIsDark(!isDark)} variant="outline" size="sm">
+
+            <Button
+              onClick={() => setIsDark(!isDark)}
+              variant="outline"
+              size="sm"
+            >
               <SunIcon size={14} />
             </Button>
           </div>
@@ -968,7 +1223,9 @@ export default function SolvePage({ params }) {
         {isMobilePanelOpen && (
           <div className="absolute inset-0 bg-background z-50 overflow-auto">
             <div className="sticky top-0 bg-muted/30 px-3 py-2 flex items-center justify-between border-b border-border">
-              <h2 className="font-semibold text-foreground text-sm">Problem Details</h2>
+              <h2 className="font-semibold text-foreground text-sm">
+                Problem Details
+              </h2>
               <Button
                 onClick={() => setIsMobilePanelOpen(false)}
                 variant="ghost"
@@ -987,7 +1244,9 @@ export default function SolvePage({ params }) {
           <div className="bg-muted/20 px-3 py-2 flex items-center justify-between border-b border-border shrink-0">
             <div className="flex items-center gap-2 px-2 py-1 bg-background rounded-md border border-border">
               <Clock className="h-3 w-3 text-muted-foreground" />
-              <span className="font-mono text-xs font-medium text-foreground">{formatTime(time)}</span>
+              <span className="font-mono text-xs font-medium text-foreground">
+                {formatTime(time)}
+              </span>
               <Button
                 onClick={() => setIsTimerRunning(!isTimerRunning)}
                 variant="ghost"
@@ -998,8 +1257,8 @@ export default function SolvePage({ params }) {
               </Button>
               <Button
                 onClick={() => {
-                  setTime(0)
-                  setIsTimerRunning(false)
+                  setTime(0);
+                  setIsTimerRunning(false);
                 }}
                 variant="ghost"
                 size="icon"
@@ -1025,7 +1284,11 @@ export default function SolvePage({ params }) {
                 size="sm"
                 className="gap-1 h-7 px-2 text-xs bg-green-600 hover:bg-green-700 text-white"
               >
-                {isSubmitting ? <Loader2 size={12} className="animate-spin" /> : "Submit"}
+                {isSubmitting ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  "Submit"
+                )}
               </Button>
             </div>
           </div>
@@ -1051,7 +1314,10 @@ export default function SolvePage({ params }) {
           </div>
 
           {/* Mobile Console */}
-          <div className="border-t border-border bg-background shrink-0" style={{ height: '35%' }}>
+          <div
+            className="border-t border-border bg-background shrink-0"
+            style={{ height: "35%" }}
+          >
             <Tabs defaultValue="result" className="h-full flex flex-col">
               <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-muted/30 px-3 shrink-0">
                 <TabsTrigger
@@ -1070,10 +1336,16 @@ export default function SolvePage({ params }) {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="result" className="flex-1 p-3 overflow-auto min-h-0 text-xs">
+              <TabsContent
+                value="result"
+                className="flex-1 p-3 overflow-auto min-h-0 text-xs"
+              >
                 {isSubmitting ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                    <Loader2 size={32} className="mb-2 opacity-50 animate-spin" />
+                    <Loader2
+                      size={32}
+                      className="mb-2 opacity-50 animate-spin"
+                    />
                     <p className="text-xs font-medium">Evaluating...</p>
                   </div>
                 ) : !output || output.length === 0 ? (
@@ -1083,34 +1355,40 @@ export default function SolvePage({ params }) {
                   </div>
                 ) : (
                   (() => {
-                    const parsed = parseOutput(output)
+                    const parsed = parseOutput(output);
                     const getResultStyle = (status, hasError, isAccepted) => {
                       if (hasError) {
                         return {
                           bg: "bg-red-100 dark:bg-red-950/30",
                           text: "text-red-600 dark:text-red-400",
                           icon: XCircle,
-                        }
+                        };
                       }
                       if (isAccepted) {
                         return {
                           bg: "bg-green-100 dark:bg-green-950/30",
                           text: "text-green-600 dark:text-green-400",
                           icon: CheckCircle2,
-                        }
+                        };
                       }
                       return {
                         bg: "bg-red-100 dark:bg-red-950/30",
                         text: "text-red-600 dark:text-red-400",
                         icon: XCircle,
-                      }
-                    }
-                    const style = getResultStyle(parsed.statusText, parsed.hasError, parsed.isAccepted)
+                      };
+                    };
+                    const style = getResultStyle(
+                      parsed.statusText,
+                      parsed.hasError,
+                      parsed.isAccepted
+                    );
 
                     return (
                       <div className="space-y-3 h-full">
                         <div className="flex items-center gap-2 pb-2 border-b border-border">
-                          <div className={`h-8 w-8 rounded-full ${style.bg} flex items-center justify-center shrink-0`}>
+                          <div
+                            className={`h-8 w-8 rounded-full ${style.bg} flex items-center justify-center shrink-0`}
+                          >
                             <style.icon className="h-4 w-4" />
                           </div>
                           <div>
@@ -1127,19 +1405,26 @@ export default function SolvePage({ params }) {
                                 key={i}
                                 className="bg-gradient-to-br from-muted/50 to-muted/30 p-2 rounded-lg border border-border/50"
                               >
-                                <p className="text-[10px] text-muted-foreground mb-0.5 font-medium">{m.label}</p>
-                                <p className="text-xs font-bold text-foreground">{m.value}</p>
+                                <p className="text-[10px] text-muted-foreground mb-0.5 font-medium">
+                                  {m.label}
+                                </p>
+                                <p className="text-xs font-bold text-foreground">
+                                  {m.value}
+                                </p>
                               </div>
                             ))}
                           </div>
                         )}
                       </div>
-                    )
+                    );
                   })()
                 )}
               </TabsContent>
 
-              <TabsContent value="log" className="flex-1 p-3 overflow-auto font-mono text-[11px] min-h-0">
+              <TabsContent
+                value="log"
+                className="flex-1 p-3 overflow-auto font-mono text-[11px] min-h-0"
+              >
                 {!output || output.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                     <Terminal size={32} className="mb-2 opacity-30" />
@@ -1147,8 +1432,8 @@ export default function SolvePage({ params }) {
                   </div>
                 ) : (
                   (() => {
-                    const parsed = parseOutput(output)
-                    const logs = parsed.logData
+                    const parsed = parseOutput(output);
+                    const logs = parsed.logData;
 
                     return (
                       <div className="space-y-1.5">
@@ -1160,36 +1445,44 @@ export default function SolvePage({ params }) {
                                   Output
                                 </p>
                                 <div className="bg-background border border-border rounded-md p-2">
-                                  <pre className="text-foreground whitespace-pre-wrap text-[11px]">{entry.message}</pre>
+                                  <pre className="text-foreground whitespace-pre-wrap text-[11px]">
+                                    {entry.message}
+                                  </pre>
                                 </div>
                               </div>
-                            )
+                            );
                           }
 
-                          const base = "p-2 rounded-md border flex items-start gap-2"
-                          let tone = "border-border/50 bg-muted/30"
-                          let Icon = Terminal
+                          const base =
+                            "p-2 rounded-md border flex items-start gap-2";
+                          let tone = "border-border/50 bg-muted/30";
+                          let Icon = Terminal;
 
                           if (entry.type === "error") {
-                            tone = "border-red-500/30 bg-red-50/50 dark:bg-red-950/20"
-                            Icon = XCircle
+                            tone =
+                              "border-red-500/30 bg-red-50/50 dark:bg-red-950/20";
+                            Icon = XCircle;
                           } else if (entry.type === "success") {
-                            tone = "border-green-500/30 bg-green-50/50 dark:bg-green-950/20"
-                            Icon = CheckCircle2
+                            tone =
+                              "border-green-500/30 bg-green-50/50 dark:bg-green-950/20";
+                            Icon = CheckCircle2;
                           } else if (entry.type === "metric") {
-                            tone = "border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20"
-                            Icon = Clock
+                            tone =
+                              "border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20";
+                            Icon = Clock;
                           }
 
                           return (
                             <div key={index} className={`${base} ${tone}`}>
                               <Icon className="h-3 w-3 mt-0.5 shrink-0" />
-                              <span className="whitespace-pre-wrap flex-1 break-all">{entry.message}</span>
+                              <span className="whitespace-pre-wrap flex-1 break-all">
+                                {entry.message}
+                              </span>
                             </div>
-                          )
+                          );
                         })}
                       </div>
-                    )
+                    );
                   })()
                 )}
               </TabsContent>
@@ -1199,12 +1492,12 @@ export default function SolvePage({ params }) {
       </div>
 
       {/* Desktop: Side-by-side Layout */}
-      <div 
-        id="main-container" 
+      <div
+        id="main-container"
         className="hidden lg:flex h-full overflow-hidden relative"
       >
         {/* Left Panel - Problem Description */}
-        <div 
+        <div
           className="border-r border-border flex flex-col overflow-hidden"
           style={{ width: `${leftPanelWidth}%` }}
         >
@@ -1220,7 +1513,7 @@ export default function SolvePage({ params }) {
         </div>
 
         {/* Right Panel - Code Editor */}
-        <div 
+        <div
           id="right-panel"
           className="flex flex-col bg-background overflow-hidden"
           style={{ width: `${100 - leftPanelWidth}%` }}
@@ -1242,7 +1535,9 @@ export default function SolvePage({ params }) {
 
               <div className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-md border border-border">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="font-mono text-sm font-medium text-foreground">{formatTime(time)}</span>
+                <span className="font-mono text-sm font-medium text-foreground">
+                  {formatTime(time)}
+                </span>
                 <Button
                   onClick={() => setIsTimerRunning(!isTimerRunning)}
                   variant="ghost"
@@ -1254,8 +1549,8 @@ export default function SolvePage({ params }) {
                 </Button>
                 <Button
                   onClick={() => {
-                    setTime(0)
-                    setIsTimerRunning(false)
+                    setTime(0);
+                    setIsTimerRunning(false);
                   }}
                   variant="ghost"
                   size="icon"
@@ -1279,11 +1574,21 @@ export default function SolvePage({ params }) {
                 <span className="hidden xl:inline">Run</span>
               </Button>
 
-              <Button onClick={copyCode} variant="outline" size="sm" className="gap-2 bg-transparent">
+              <Button
+                onClick={copyCode}
+                variant="outline"
+                size="sm"
+                className="gap-2 bg-transparent"
+              >
                 <Copy size={16} />
                 <span className="hidden xl:inline">Copy</span>
               </Button>
-              <Button onClick={() => setIsDark(!isDark)} variant="outline" size="sm" className="gap-2">
+              <Button
+                onClick={() => setIsDark(!isDark)}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
                 <SunIcon size={16} />
               </Button>
 
@@ -1292,7 +1597,11 @@ export default function SolvePage({ params }) {
                 disabled={isSubmitting || !isAuthenticated}
                 size="sm"
                 className="gap-2 bg-green-600 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                title={!isAuthenticated ? "Please log in to submit" : "Submit your solution"}
+                title={
+                  !isAuthenticated
+                    ? "Please log in to submit"
+                    : "Submit your solution"
+                }
               >
                 {isSubmitting ? (
                   <>
@@ -1307,7 +1616,7 @@ export default function SolvePage({ params }) {
           </div>
 
           {/* Monaco Editor */}
-          <div 
+          <div
             className="overflow-hidden relative"
             style={{ height: `${100 - consoleHeight}%` }}
           >
@@ -1338,11 +1647,14 @@ export default function SolvePage({ params }) {
           </div>
 
           {/* Console/Output Section */}
-          <div 
+          <div
             className="border-t border-border flex flex-col bg-background shrink-0 overflow-hidden"
             style={{ height: `${consoleHeight}%` }}
           >
-            <Tabs defaultValue="result" className="flex-1 flex flex-col min-h-0">
+            <Tabs
+              defaultValue="result"
+              className="flex-1 flex flex-col min-h-0"
+            >
               <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-muted/30 px-4 shrink-0">
                 <TabsTrigger
                   value="result"
@@ -1360,63 +1672,85 @@ export default function SolvePage({ params }) {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="result" className="flex-1 p-4 overflow-auto min-h-0">
+              <TabsContent
+                value="result"
+                className="flex-1 p-4 overflow-auto min-h-0"
+              >
                 {isSubmitting ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                    <Loader2 size={48} className="mb-3 opacity-50 animate-spin" />
-                    <p className="text-sm font-medium">Evaluating your submission...</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">Please wait</p>
+                    <Loader2
+                      size={48}
+                      className="mb-3 opacity-50 animate-spin"
+                    />
+                    <p className="text-sm font-medium">
+                      Evaluating your submission...
+                    </p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">
+                      Please wait
+                    </p>
                   </div>
                 ) : !output || output.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                     <Terminal size={48} className="mb-3 opacity-30" />
                     <p className="text-sm font-medium">No results yet</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">Run or Submit code to see results</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">
+                      Run or Submit code to see results
+                    </p>
                   </div>
                 ) : (
                   (() => {
-                    const parsed = parseOutput(output)
+                    const parsed = parseOutput(output);
                     const getResultStyle = (status, hasError, isAccepted) => {
                       if (hasError) {
                         return {
                           bg: "bg-red-100 dark:bg-red-950/30",
                           text: "text-red-600 dark:text-red-400",
                           icon: XCircle,
-                        }
+                        };
                       }
                       if (isAccepted) {
                         return {
                           bg: "bg-green-100 dark:bg-green-950/30",
                           text: "text-green-600 dark:text-green-400",
                           icon: CheckCircle2,
-                        }
+                        };
                       }
                       if (status === "Time Limit Exceeded") {
                         return {
                           bg: "bg-yellow-100 dark:bg-yellow-950/30",
                           text: "text-yellow-600 dark:text-yellow-400",
                           icon: Clock,
-                        }
+                        };
                       } else {
                         return {
                           bg: "bg-red-100 dark:bg-red-950/30",
                           text: "text-red-600 dark:text-red-400",
                           icon: XCircle,
-                        }
+                        };
                       }
-                    }
-                    const style = getResultStyle(parsed.statusText, parsed.hasError, parsed.isAccepted)
-                    let subText = parsed.hasError ? "Check execution log for details"
-                      : parsed.isAccepted ? "All test cases passed"
-                      : parsed.statusText === "Time Limit Exceeded" ? "Execution took too long - optimize your code"
-                      : parsed.statusText.includes("Error") ? "Fix the errors in your code"
-                      : "Some test cases failed - check log for details"
+                    };
+                    const style = getResultStyle(
+                      parsed.statusText,
+                      parsed.hasError,
+                      parsed.isAccepted
+                    );
+                    let subText = parsed.hasError
+                      ? "Check execution log for details"
+                      : parsed.isAccepted
+                      ? "All test cases passed"
+                      : parsed.statusText === "Time Limit Exceeded"
+                      ? "Execution took too long - optimize your code"
+                      : parsed.statusText.includes("Error")
+                      ? "Fix the errors in your code"
+                      : "Some test cases failed - check log for details";
 
                     return (
                       <div className="space-y-4 h-full">
                         <div className="flex items-center justify-between pb-3 border-b border-border">
                           <div className="flex items-center gap-3">
-                            <div className={`h-10 w-10 rounded-full ${style.bg} flex items-center justify-center`}>
+                            <div
+                              className={`h-10 w-10 rounded-full ${style.bg} flex items-center justify-center`}
+                            >
                               <style.icon className="h-5 w-5" />
                             </div>
                             <div>
@@ -1437,29 +1771,38 @@ export default function SolvePage({ params }) {
                                 key={i}
                                 className="bg-gradient-to-br from-muted/50 to-muted/30 p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
                               >
-                                <p className="text-xs text-muted-foreground mb-1 font-medium">{m.label}</p>
-                                <p className="text-lg font-bold text-foreground">{m.value}</p>
+                                <p className="text-xs text-muted-foreground mb-1 font-medium">
+                                  {m.label}
+                                </p>
+                                <p className="text-lg font-bold text-foreground">
+                                  {m.value}
+                                </p>
                               </div>
                             ))}
                           </div>
                         )}
                       </div>
-                    )
+                    );
                   })()
                 )}
               </TabsContent>
 
-              <TabsContent value="log" className="flex-1 p-4 overflow-auto font-mono text-sm min-h-0">
+              <TabsContent
+                value="log"
+                className="flex-1 p-4 overflow-auto font-mono text-sm min-h-0"
+              >
                 {!output || output.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                     <Terminal size={48} className="mb-3 opacity-30" />
                     <p className="text-sm font-medium">No logs yet</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">Run or Submit to generate execution logs</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">
+                      Run or Submit to generate execution logs
+                    </p>
                   </div>
                 ) : (
                   (() => {
-                    const parsed = parseOutput(output)
-                    const logs = parsed.logData
+                    const parsed = parseOutput(output);
+                    const logs = parsed.logData;
 
                     return (
                       <div className="space-y-2">
@@ -1471,39 +1814,48 @@ export default function SolvePage({ params }) {
                                   Program Output
                                 </p>
                                 <div className="bg-background border border-border rounded-md p-3">
-                                  <pre className="text-foreground whitespace-pre-wrap text-sm">{entry.message}</pre>
+                                  <pre className="text-foreground whitespace-pre-wrap text-sm">
+                                    {entry.message}
+                                  </pre>
                                 </div>
                               </div>
-                            )
+                            );
                           }
 
-                          const base = "p-3 rounded-md border flex items-start gap-2.5"
-                          let tone = "border-border/50 bg-muted/30"
-                          let Icon = Terminal
+                          const base =
+                            "p-3 rounded-md border flex items-start gap-2.5";
+                          let tone = "border-border/50 bg-muted/30";
+                          let Icon = Terminal;
 
                           if (entry.type === "error") {
-                            tone = "border-red-500/30 bg-red-50/50 dark:bg-red-950/20"
-                            Icon = XCircle
+                            tone =
+                              "border-red-500/30 bg-red-50/50 dark:bg-red-950/20";
+                            Icon = XCircle;
                           } else if (entry.type === "success") {
-                            tone = "border-green-500/30 bg-green-50/50 dark:bg-green-950/20"
-                            Icon = CheckCircle2
+                            tone =
+                              "border-green-500/30 bg-green-50/50 dark:bg-green-950/20";
+                            Icon = CheckCircle2;
                           } else if (entry.type === "metric") {
-                            tone = "border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20"
-                            Icon = Clock
+                            tone =
+                              "border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20";
+                            Icon = Clock;
                           } else if (entry.type === "info") {
-                            tone = "border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20"
-                            Icon = Terminal
+                            tone =
+                              "border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20";
+                            Icon = Terminal;
                           }
 
                           return (
                             <div key={index} className={`${base} ${tone}`}>
                               <Icon className="h-4 w-4 mt-0.5 shrink-0" />
-                              <span className="whitespace-pre-wrap flex-1">{entry.message}</span>
+                              <span className="whitespace-pre-wrap flex-1">
+                                {entry.message}
+                              </span>
                             </div>
-                          )
+                          );
                         })}
                       </div>
-                    )
+                    );
                   })()
                 )}
               </TabsContent>
@@ -1512,5 +1864,5 @@ export default function SolvePage({ params }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
