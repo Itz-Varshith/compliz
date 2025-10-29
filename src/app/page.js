@@ -352,14 +352,14 @@ export default function HomePage() {
               </p>
               <div className="flex items-center space-x-4">
                 <a
-                  href="#"
+                  href="https://github.com/Itz-Varshith/compliz"
                   className="text-slate-400 hover:text-primary transition-colors duration-200"
                   aria-label="GitHub"
                 >
                   <Github className="h-6 w-6" />
                 </a>
                 <a
-                  href="#"
+                  href="https://instagram.com/itx_harshith_p"
                   className="text-slate-400 hover:text-primary transition-colors duration-200"
                   aria-label="Instagram"
                 >
