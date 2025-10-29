@@ -137,7 +137,7 @@ export default function QuestionSubmissionPage() {
       } = await supabase.auth.getSession()
       const token = session?.access_token
       console.log(token)
-      const response = await fetch("http://localhost:5000/question/new", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/question/new`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),

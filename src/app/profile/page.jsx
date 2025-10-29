@@ -158,7 +158,7 @@ export default function ProfilePage() {
     return user
   }
 
-  const API_BASE = "http://localhost:5000"
+  const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   const fetchJson = async (url, token) => {
     const res = await fetch(url, {

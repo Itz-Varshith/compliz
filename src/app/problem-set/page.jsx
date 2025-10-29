@@ -244,7 +244,7 @@ function App() {
       try {
         setIsLoading(true)
         setError(null)
-        const response = await fetch("http://localhost:5000/question/all")
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/question/all`)
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)

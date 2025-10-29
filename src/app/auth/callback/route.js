@@ -37,7 +37,7 @@ export async function GET(request) {
     // ✅ Sync user to backend here
     if (session?.user) {
       console.log(session.user)
-      await fetch(`http://localhost:5000/auth/save`, {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user: session.user }),

@@ -145,7 +145,7 @@ function App() {
     setShowOutput(true)
 
     try {
-      const response = await fetch("http://localhost:5000/code/compile", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/code/compile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -225,7 +225,7 @@ function App() {
         return
       }
 
-      const response = await fetch("http://localhost:5000/code/self", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/code/self`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

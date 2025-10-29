@@ -191,7 +191,7 @@ export default function SolvePage({ params }) {
         setError(null);
 
         const response = await fetch(
-          `http://localhost:5000/question/one/${questionId}`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/question/one/${questionId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -324,7 +324,7 @@ export default function SolvePage({ params }) {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/code/run-example-test-cases",
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/code/run-example-test-cases`,
         {
           method: "POST",
           headers: {
@@ -458,7 +458,7 @@ export default function SolvePage({ params }) {
     setOutput([{ type: "log", message: "Submitting solution..." }]);
 
     try {
-      const response = await fetch("http://localhost:5000/code/submit", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/code/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -619,7 +619,7 @@ export default function SolvePage({ params }) {
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
       const res = await fetch(
-        `http://localhost:5000/submission/one/${questionId}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/submission/one/${questionId}`,
         { headers }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
