@@ -1348,7 +1348,15 @@ export default function SolvePage({ params }) {
                     />
                     <p className="text-xs font-medium">Evaluating...</p>
                   </div>
-                ) : !output || output.length === 0 ? (
+                ) : isRunning && !isSubmitting ? ( 
+                      <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                          <Loader2
+                              size={32}
+                              className="mb-2 opacity-50 animate-spin"
+                          />
+                          <p className="text-xs font-medium">Running code...</p>
+                      </div>
+                  ): !output || output.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                     <Terminal size={32} className="mb-2 opacity-30" />
                     <p className="text-xs font-medium">No results yet</p>
@@ -1689,7 +1697,20 @@ export default function SolvePage({ params }) {
                       Please wait
                     </p>
                   </div>
-                ) : !output || output.length === 0 ? (
+                ) : isRunning && !isSubmitting ? ( // <-- ADD THIS BLOCK
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                      <Loader2
+                          size={48}
+                          className="mb-3 opacity-50 animate-spin"
+                      />
+                      <p className="text-sm font-medium">
+                          Running code...
+                      </p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">
+                          Please wait
+                              </p>
+                      </div>
+                  ) : !output || output.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                     <Terminal size={48} className="mb-3 opacity-30" />
                     <p className="text-sm font-medium">No results yet</p>
