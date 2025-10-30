@@ -334,7 +334,7 @@ export default function ProfilePage() {
               onClick={() => setActiveNav("overview")}
             >
               <TrendingUp className="h-4 w-4" />
-              <span className="hidden sm:inline">Overview</span>
+              <span className=" sm:inline">Overview</span>
             </Button>
             <Button
               variant={activeNav === "history" ? "secondary" : "ghost"}
@@ -342,7 +342,7 @@ export default function ProfilePage() {
               onClick={() => setActiveNav("history")}
             >
               <Clock className="h-4 w-4" />
-              <span className="hidden sm:inline">Practice History</span>
+              <span className=" sm:inline">Practice History</span>
             </Button>
             <Button
               variant={activeNav === "progress" ? "secondary" : "ghost"}
@@ -350,7 +350,7 @@ export default function ProfilePage() {
               onClick={() => setActiveNav("progress")}
             >
               <Award className="h-4 w-4" />
-              <span className="hidden sm:inline">Progress</span>
+              <span className=" sm:inline">Progress</span>
             </Button>
             <Button
               variant={activeNav === "saved" ? "secondary" : "ghost"}
@@ -358,7 +358,7 @@ export default function ProfilePage() {
               onClick={() => setActiveNav("saved")}
             >
               <Code2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Saved Codes</span>
+              <span className=" sm:inline">Saved Codes</span>
             </Button>
             <Button
               variant={activeNav === "settings" ? "secondary" : "ghost"}
@@ -366,11 +366,11 @@ export default function ProfilePage() {
               onClick={() => setActiveNav("settings")}
             >
               <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Settings</span>
+              <span className=" sm:inline">Settings</span>
             </Button>
           </nav>
 
-          <div className="p-4 border-t border-border space-y-4">
+          <div className="hidden lg:flex p-4 border-t border-border space-y-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12 border-2 border-primary/50">
                 <AvatarFallback className="text-primary font-bold text-lg">{userInitial}</AvatarFallback>
