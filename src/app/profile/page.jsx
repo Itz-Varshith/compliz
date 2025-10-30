@@ -158,7 +158,7 @@ export default function ProfilePage() {
     return user
   }
 
-  const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const API_BASE = "http://localhost:5000"
 
   const fetchJson = async (url, token) => {
     const res = await fetch(url, {
@@ -298,7 +298,6 @@ export default function ProfilePage() {
     getSession()
   }, [supabase])
 
-  // Get user name from auth metadata, fallback to email or "User"
   const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || "User"
   const userEmail = user?.email || "user@example.com"
   const userInitial = userName?.charAt(0).toUpperCase() || "U"
@@ -325,17 +324,17 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="flex h-[calc(100vh-4rem)]">
-        <aside className="w-64 border-r border-border bg-muted/20 backdrop-blur-md flex flex-col">
-          <nav className="flex-1 p-4 space-y-2">
+    <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)]">
+        <aside className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-border bg-muted/20 backdrop-blur-md flex flex-col">
+          <nav className="flex-1 p-4 space-y-2 lg:block grid grid-cols-2 sm:grid-cols-3 gap-2 lg:space-y-2">
             <Button
               variant={activeNav === "overview" ? "secondary" : "ghost"}
               className="w-full justify-start gap-2"
               onClick={() => setActiveNav("overview")}
             >
               <TrendingUp className="h-4 w-4" />
-              Overview
+              <span className="hidden sm:inline">Overview</span>
             </Button>
             <Button
               variant={activeNav === "history" ? "secondary" : "ghost"}
@@ -343,7 +342,7 @@ export default function ProfilePage() {
               onClick={() => setActiveNav("history")}
             >
               <Clock className="h-4 w-4" />
-              Practice History
+              <span className="hidden sm:inline">Practice History</span>
             </Button>
             <Button
               variant={activeNav === "progress" ? "secondary" : "ghost"}
@@ -351,7 +350,7 @@ export default function ProfilePage() {
               onClick={() => setActiveNav("progress")}
             >
               <Award className="h-4 w-4" />
-              Progress
+              <span className="hidden sm:inline">Progress</span>
             </Button>
             <Button
               variant={activeNav === "saved" ? "secondary" : "ghost"}
@@ -359,7 +358,7 @@ export default function ProfilePage() {
               onClick={() => setActiveNav("saved")}
             >
               <Code2 className="h-4 w-4" />
-              Saved Codes
+              <span className="hidden sm:inline">Saved Codes</span>
             </Button>
             <Button
               variant={activeNav === "settings" ? "secondary" : "ghost"}
@@ -367,7 +366,7 @@ export default function ProfilePage() {
               onClick={() => setActiveNav("settings")}
             >
               <User className="h-4 w-4" />
-              Settings
+              <span className="hidden sm:inline">Settings</span>
             </Button>
           </nav>
 
@@ -400,23 +399,23 @@ export default function ProfilePage() {
         </aside>
 
         <main className="flex-1 overflow-auto">
-          <div className="container mx-auto p-6 max-w-7xl">
+          <div className="container mx-auto p-3 sm:p-4 lg:p-6 max-w-7xl">
             <Tabs value={activeNav} onValueChange={setActiveNav} className="space-y-6">
               <TabsContent value="overview" className="space-y-6">
                 <div>
-                  <h1 className="text-4xl font-bold text-balance mb-2">Welcome back, {userName.split(" ")[0]} 👋</h1>
-                  <p className="text-muted-foreground">Here's your coding journey at a glance</p>
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-balance mb-2">Welcome back, {userName.split(" ")[0]} 👋</h1>
+                  <p className="text-sm sm:text-base text-muted-foreground">Here's your coding journey at a glance</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {statsData.map((stat, index) => (
                     <Card key={index} className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
                       <CardContent className="pt-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <stat.icon className={`h-8 w-8 ${stat.color}`} />
-                          <div className="text-3xl font-bold mr-5">{stat.value}</div>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 gap-2">
+                          <stat.icon className={`h-6 w-6 sm:h-8 sm:w-8 ${stat.color}`} />
+                          <div className="text-2xl sm:text-3xl font-bold sm:mr-5">{stat.value}</div>
                         </div>
-                        <p className="text-sm text-muted-foreground">{stat.label}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -432,7 +431,7 @@ export default function ProfilePage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-primary">
-                      <ResponsiveContainer width="100%" height={300}>
+                      <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
                         <LineChart data={dailyProgress}>
                           <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                           <XAxis dataKey="date" className="text-xs" />
@@ -454,8 +453,8 @@ export default function ProfilePage() {
 
               <TabsContent value="history" className="space-y-6">
                 <div>
-                  <h2 className="text-3xl font-bold mb-2">Practice History</h2>
-                  <p className="text-muted-foreground">Review your past submissions and solutions</p>
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">Practice History</h2>
+                  <p className="text-sm sm:text-base text-muted-foreground">Review your past submissions and solutions</p>
                 </div>
 
                 <div className="flex items-center gap-2 mb-4">
@@ -491,13 +490,13 @@ export default function ProfilePage() {
                         }
                       >
                         <CardHeader className="pb-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <CardTitle className="text-lg">{submission.title}</CardTitle>
+                          <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                            <div className="flex-1 w-full">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                                <CardTitle className="text-base sm:text-lg break-words">{submission.title}</CardTitle>
                                 <Badge
                                   variant={submission.verdict === "Accepted" || submission.verdict === "AC" || submission.verdict === "ACCEPTED" ? "default" : "destructive"}
-                                  className="gap-1"
+                                  className="gap-1 w-fit"
                                 >
                                   {submission.verdict === "Accepted" || submission.verdict === "AC" || submission.verdict === "ACCEPTED" ? (
                                     <CheckCircle2 className="h-3 w-3" />
@@ -571,8 +570,8 @@ export default function ProfilePage() {
 
               <TabsContent value="progress" className="space-y-6">
                 <div>
-                  <h2 className="text-3xl font-bold mb-2">Progress Analytics</h2>
-                  <p className="text-muted-foreground">Track your improvement over time</p>
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">Progress Analytics</h2>
+                  <p className="text-sm sm:text-base text-muted-foreground">Track your improvement over time</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -583,7 +582,7 @@ export default function ProfilePage() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-[hsl(var(--chart-1))]">
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
                           <LineChart data={dailyProgress}>
                             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                             <XAxis dataKey="date" className="text-xs" />
@@ -609,7 +608,7 @@ export default function ProfilePage() {
                     </CardHeader>
                     <CardContent>
                       {topicProgress.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
                           <BarChart data={topicProgress}>
                             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                             <XAxis dataKey="topic" className="text-xs" />
@@ -644,7 +643,7 @@ export default function ProfilePage() {
                   </CardHeader>
                   <CardContent>
                     {topicProgress.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={400}>
+                      <ResponsiveContainer width="100%" height={300} className="sm:h-[400px]">
                         <PieChart>
                           <Pie
                             data={topicProgress}
@@ -680,8 +679,8 @@ export default function ProfilePage() {
 
               <TabsContent value="saved" className="space-y-6">
                 <div>
-                  <h2 className="text-3xl font-bold mb-2">Saved Code Snippets</h2>
-                  <p className="text-muted-foreground">Your personal code template library</p>
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">Saved Code Snippets</h2>
+                  <p className="text-sm sm:text-base text-muted-foreground">Your personal code template library</p>
                 </div>
 
                 {codesLoading && <p className="text-sm text-muted-foreground">Loading saved codes...</p>}
