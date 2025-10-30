@@ -158,7 +158,7 @@ export default function ProfilePage() {
     return user
   }
 
-  const API_BASE = "http://localhost:5000"
+  const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL
 
   const fetchJson = async (url, token) => {
     const res = await fetch(url, {
@@ -370,7 +370,7 @@ export default function ProfilePage() {
             </Button>
           </nav>
 
-          <div className="hidden lg:flex p-4 border-t border-border space-y-4">
+          <div className="hidden lg:flex flex-col p-4 border-t border-border space-y-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12 border-2 border-primary/50">
                 <AvatarFallback className="text-primary font-bold text-lg">{userInitial}</AvatarFallback>
