@@ -390,6 +390,12 @@ export default function HomePage() {
                 <span className="hover:text-primary transition-colors cursor-default">
                   HARSHITH
                 </span>
+                <span>
+                <span className="text-primary">&&{" "}</span>
+                <span className="hover:text-primary transition-colors cursor-default">
+                  Sairaj
+                </span>
+                </span>
               </div>
             </div>
           </div>
