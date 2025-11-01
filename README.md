@@ -6,12 +6,16 @@
   <img src="https://img.shields.io/badge/Node.js-Express-green?style=for-the-badge&logo=node.js" alt="Backend" />
   <img src="https://img.shields.io/badge/PostgreSQL-Database-blue?style=for-the-badge&logo=postgresql" alt="Database" />
   <img src="https://img.shields.io/badge/Supabase-Auth-green?style=for-the-badge&logo=supabase" alt="Authentication" />
+  <img src="https://img.shields.io/badge/Render-Hosting-blue?style=for-the-badge&logo=render" alt="Render Hosting" />
+  <img src="https://img.shields.io/badge/Vercel-Hosting-black?style=for-the-badge&logo=vercel" alt="Vercel Hosting" />
+
 </div>
 
 <br>
 
 **Compliz** is a comprehensive online coding platform designed for developers who aspire to master algorithms, solve complex problems, and build their skills with confidence. Built with modern web technologies, it provides an integrated environment for coding practice, competition, and learning.
 
+*Initial load times may be large due to cold start of the backend and frontend from the hosting services*
 ## ✨ Features
 
 ### 🎯 Core Functionality
